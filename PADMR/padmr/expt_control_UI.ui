@@ -18,29 +18,19 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="3">
-     <widget class="QComboBox" name="scatter_pt_size_cbx">
-      <property name="maximumSize">
-       <size>
-        <width>140</width>
-        <height>16777215</height>
-       </size>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_11">
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
       </property>
-      <item>
-       <property name="text">
-        <string>Small</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Large</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Line</string>
-       </property>
-      </item>
+      <property name="text">
+       <string>Experiment Setup</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
     </item>
     <item row="3" column="0" rowspan="17">
@@ -58,9 +48,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-420</y>
          <width>477</width>
-         <height>1657</height>
+         <height>1845</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -335,6 +325,23 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Steps</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="ScienDSpinBox" name="sweep_start_spbx">
+            <property name="minimum">
+             <double>-10000000000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000000000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="6" rowspan="4">
            <widget class="QTextEdit" name="steps_display">
             <property name="maximumSize">
@@ -345,17 +352,10 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="log_spacing_checkbox">
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_16">
             <property name="text">
-             <string>Log Spacing</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>Steps</string>
+             <string>End</string>
             </property>
            </widget>
           </item>
@@ -372,12 +372,32 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="4">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>Step Size</string>
+          <item row="1" column="2">
+           <widget class="ScienDSpinBox" name="sweep_end_spbx">
+            <property name="minimum">
+             <double>-10000000000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000000000.000000000000000</double>
             </property>
            </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="log_spacing_checkbox">
+            <property name="text">
+             <string>Log Spacing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Start</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="CustomComboBox" name="sweep_units_cbx"/>
           </item>
           <item row="3" column="4">
            <widget class="QLineEdit" name="step_size_display">
@@ -392,42 +412,22 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="ScienDSpinBox" name="sweep_start_spbx">
-            <property name="minimum">
-             <double>-10000000000.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10000000000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="ScienDSpinBox" name="sweep_end_spbx">
-            <property name="minimum">
-             <double>-10000000000.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10000000000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4">
-           <widget class="CustomComboBox" name="sweep_units_cbx"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_15">
+          <item row="2" column="4">
+           <widget class="QLabel" name="label_18">
             <property name="text">
-             <string>Start</string>
+             <string>Step Size</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="label_16">
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="manual_values_checkbox">
             <property name="text">
-             <string>End</string>
+             <string>Manual Values</string>
             </property>
            </widget>
+          </item>
+          <item row="4" column="6">
+           <widget class="QTextEdit" name="input_values_table"/>
           </item>
          </layout>
         </item>
@@ -635,6 +635,9 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
+          <item row="1" column="2">
+           <widget class="CustomComboBox" name="sweep_units_cbx_dim2"/>
+          </item>
           <item row="0" column="3" rowspan="4">
            <widget class="QTextEdit" name="steps_display_dim2">
             <property name="maximumSize">
@@ -642,6 +645,41 @@
               <width>100</width>
               <height>16777215</height>
              </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Start</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Steps</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="CustomDoubleSpinBox" name="sweep_start_spbx_dim2">
+            <property name="maximum">
+             <double>2050000000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>End</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="log_spacing_checkbox_dim2">
+            <property name="text">
+             <string>Log Spacing</string>
             </property>
            </widget>
           </item>
@@ -654,30 +692,6 @@
              <double>2050000000.000000000000000</double>
             </property>
            </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="CustomDoubleSpinBox" name="sweep_start_spbx_dim2">
-            <property name="maximum">
-             <double>2050000000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_20">
-            <property name="text">
-             <string>End</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="CustomComboBox" name="sweep_units_cbx_dim2"/>
           </item>
           <item row="3" column="2">
            <widget class="QLineEdit" name="step_size_display_dim2">
@@ -709,19 +723,15 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="label_21">
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="manual_values_checkbox_dim2">
             <property name="text">
-             <string>Steps</string>
+             <string>Manual Values</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="log_spacing_checkbox_dim2">
-            <property name="text">
-             <string>Log Spacing</string>
-            </property>
-           </widget>
+          <item row="4" column="3">
+           <widget class="QTextEdit" name="input_values_table_dim2"/>
           </item>
          </layout>
         </item>
@@ -1420,7 +1430,7 @@
          <widget class="QComboBox" name="upper_plot_obs_cmbx">
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>150</width>
             <height>0</height>
            </size>
           </property>
@@ -1450,7 +1460,7 @@
          <widget class="QComboBox" name="lower_plot_obs_cmbx">
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>150</width>
             <height>0</height>
            </size>
           </property>
@@ -1510,21 +1520,6 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_11">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Experiment Setup</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
     <item row="2" column="2">
      <widget class="QLabel" name="plot_title_label">
       <property name="minimumSize">
@@ -1550,6 +1545,31 @@
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QComboBox" name="scatter_pt_size_cbx">
+      <property name="maximumSize">
+       <size>
+        <width>140</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <item>
+       <property name="text">
+        <string>Small</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Large</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Line</string>
+       </property>
+      </item>
      </widget>
     </item>
    </layout>
@@ -1641,28 +1661,28 @@
   <customwidget>
    <class>CustomDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>padmr.supp.CustomWidgets.h</header>
+   <header>supp.CustomWidgets.h</header>
   </customwidget>
   <customwidget>
    <class>CustomSpinBox</class>
    <extends>QSpinBox</extends>
-   <header>padmr.supp.CustomWidgets.h</header>
+   <header>supp.CustomWidgets.h</header>
   </customwidget>
   <customwidget>
    <class>CustomComboBox</class>
    <extends>QComboBox</extends>
-   <header>padmr.supp.CustomWidgets.h</header>
+   <header>supp.CustomWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ScienDSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>supp.scientific_spinbox.h</header>
   </customwidget>
   <customwidget>
    <class>PlotWidget</class>
    <extends>QWidget</extends>
    <header>pyqtgraph</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ScienDSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>padmr.supp.scientific_spinbox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -1723,7 +1743,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>477</x>
-     <y>199</y>
+     <y>-272</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1739,7 +1759,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>149</x>
-     <y>544</y>
+     <y>60</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1755,7 +1775,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>282</x>
-     <y>544</y>
+     <y>60</y>
     </hint>
     <hint type="destinationlabel">
      <x>517</x>
@@ -1771,7 +1791,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>282</x>
-     <y>608</y>
+     <y>124</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
@@ -1786,8 +1806,8 @@
    <slot>autosave_checkbox_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>66</x>
-     <y>142</y>
+     <x>77</x>
+     <y>-329</y>
     </hint>
     <hint type="destinationlabel">
      <x>77</x>
@@ -1835,7 +1855,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>379</x>
-     <y>543</y>
+     <y>59</y>
     </hint>
     <hint type="destinationlabel">
      <x>512</x>
@@ -1851,7 +1871,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>246</x>
-     <y>704</y>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
      <x>514</x>
@@ -1866,8 +1886,8 @@
    <slot>calc_steps_from_num()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>412</x>
-     <y>1199</y>
+     <x>475</x>
+     <y>765</y>
     </hint>
     <hint type="destinationlabel">
      <x>516</x>

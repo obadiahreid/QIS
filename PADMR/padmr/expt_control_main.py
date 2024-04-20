@@ -5,6 +5,7 @@
 # 4. Get laser to turn on and off with experiment (And also add a "modulation enabled" indicator)
 # 5. Finish setting up 2D experiments
 # Various:
+# -108. During instrument initialization, read current values from instruments and update settings (CG635 and SMB100a)
 # -107. Automatically save Lockin (and other) settings to file when experiment is started
 # -106. Allow adjust UHFLI bandwidth when modulation frequency is swept (so BW is similar on a log scale at each pt)
 # -105. Fix plot scaling so the user doesn't have to manually switch to log scaling (or at least autoscale it)
@@ -84,11 +85,13 @@
 # 8. Rename com_port and resource_name variables for consistency
 # 9. Format all the control modules in the same way (to the extent that it's possible to do so)
 
+# import all the necessary libraries 
 import os
 import sys
 import time
 import csv
 from typing import Union
+import re
 
 import numpy as np
 import pyvisa
@@ -106,23 +109,23 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog
 from PyQt5.QtCore import QThreadPool, QRunnable  # For multithreading (parallel tasks)
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
-import padmr.instr.mono.main
-from padmr.instr.mono.controls import MonoDriver
-from padmr.instr.mono.main import MainWindow as MonoControl
-from padmr.instr.laser.controls import TopticaInstr
-from padmr.instr.cg635.controls import CG635Instrument
-from padmr.instr.cryostat.controls import CryostatInstr
-from padmr.instr.smb100a.controls import SMB100AInstrument
+import instr.mono.main
+from instr.mono.controls import MonoDriver
+from instr.mono.main import MainWindow as MonoControl
+from instr.laser.controls import TopticaInstr
+from instr.cg635.controls import CG635Instrument
+from instr.cryostat.controls import CryostatInstr
+from instr.smb100a.controls import SMB100AInstrument
 
-from padmr.instr.lia.main import LockinWidget
-from padmr.instr.lia.controls import PrologixAdaptedSRLockin, ErrorCluster
-from padmr.instr.zurich_lia.controls import ZiLIA, ErrorCluster
-from padmr.gui import Ui_MainWindow as ExptControlMainWindow
+from instr.lia.main import LockinWidget
+from instr.lia.controls import PrologixAdaptedSRLockin, ErrorCluster
+from instr.zurich_lia.controls import ZiLIA, ErrorCluster
+from gui import Ui_MainWindow as ExptControlMainWindow
 
-from padmr.supp.help_window.main import HelpWindowForm
-from padmr.supp.settings.main import SettingsWindowForm
-from padmr.supp.label_strings import LabelStrings
-from padmr.supp import helpers
+from supp.help_window.main import HelpWindowForm
+from supp.settings.main import SettingsWindowForm
+from supp.label_strings import LabelStrings
+from supp import helpers
 
 pyqt = os.path.dirname(PyQt5.__file__)  # This and the following line are essential to make guis run
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))
@@ -261,6 +264,7 @@ class MainWindow(QMainWindow):
         self.log_spacing_checkboxes = [self.ui.log_spacing_checkbox, self.ui.log_spacing_checkbox_dim2]
         self.units_cbxes = [self.ui.sweep_units_cbx, self.ui.sweep_units_cbx_dim2]
         self.steps_displays = [self.ui.steps_display, self.ui.steps_display_dim2]
+        self.manual_steps_checkboxes = [self.ui.manual_values_checkbox,self.ui.manual_values_checkbox_dim2]
         self.sweep_end_spbxs = [self.ui.sweep_end_spbx, self.ui.sweep_end_spbx_dim2]
         self.sweep_start_spbxs = [self.ui.sweep_start_spbx, self.ui.sweep_start_spbx_dim2]
         self.num_steps_spbxs = [self.ui.num_steps_spbx, self.ui.num_steps_spbx_dim2]
@@ -472,7 +476,7 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot()
     def start_experiment(self):
         # TODO: Save notes and details to file before the worker
-        if self.sr_lockin.connected or self.zi_lockin.connected:
+        if self.sr_lockin.connected or self.zi_lockin.connected or (self.smb100a_connected and self.settings.ui.power_meter_checkbox.isChecked()):
             self.experiment_in_progress = True
             self.status_message_signal.emit('Getting Ready to Start Experiment...........')
 
@@ -515,10 +519,16 @@ class MainWindow(QMainWindow):
             if self.settings.lockin_model == 'SR844' or self.settings.lockin_model == 'SR830':
                 self.lockin_delay = self.settings.settling_delay_factor * self.settings.lia.time_constant_value
             elif self.settings.lockin_model == 'UHFLI':
+                self.zi_lockin.get_current_settings(
+                    demodulator=self.settings.ui.uhfli_demodulator_idx_spbx.value()
+                )
                 print('Lockin was UHFLI')
                 # self.sr_lockin_delay = 0.1
                 tc = self.settings.ui.uhfli_time_constant_spbx.value()
                 self.lockin_delay = self.settings.settling_delay_factor * tc
+            elif self.settings.lockin_model == 'SMBPowerMeter':
+                print('Lockin was SMB100A External Power Meter')
+                self.lockin_delay = 1
             print('lockin_delay: ' + str(self.lockin_delay))
 
             if self.ui.is_recording_transient_chkbx.isChecked():
@@ -526,7 +536,7 @@ class MainWindow(QMainWindow):
                 self.transient_duration = self.ui.time_trace_window_length_spbx.value()
             else:
                 self.is_recording_transient = False
-            self.settings.lockin_model
+            # self.settings.lockin_model
             # self.prepare_for_collection()
 
             if self.abscissae[1] is None or self.abscissae[1] == 0:
@@ -548,6 +558,28 @@ class MainWindow(QMainWindow):
                 print('Turning on RF Source Output')
                 self.smb100a.run()
 
+            if self.settings.ui.smb100a_stop_after_expt_chkbx.isChecked():
+                self.stop_smb100a_after_expt = True
+            else:
+                self.stop_smb100a_after_expt = False
+
+            if self.settings.ui.cryostat_zero_after_expt_chkbx.isChecked() and self.cryostat_connected:
+                print('Will zero the magnet after expt')
+                self.zero_magnet_after_expt = True
+            else:
+                self.zero_magnet_after_expt = False
+
+            if self.settings.ui.cooling_delay_chkbx.isChecked() and self.smb100a_connected:
+                self.tf_pause_microwaves_for_cooling = True
+                self.mw_cooling_delay = self.settings.ui.cooling_delay_spbx.value()
+            else:
+                self.tf_pause_microwaves_for_cooling = False
+
+            if self.settings.lockin_model == 'UHFLI' and self.settings.ui.uhfli_ref_mode_cbx.currentText() == "Manual (Internal)":
+                self.internal_reference = True
+            else:
+                self.internal_reference = False
+
             self.num_scans[0] = self.ui.num_scans_spbx.value()
             self.num_scans[1] = self.ui.num_scans_dim2_spbx.value()
 
@@ -565,27 +597,71 @@ class MainWindow(QMainWindow):
             # self.column_headers = [self.abscissa_name[0], 'X (Vrms)', 'Y (Vrms)', 'R (Vrms)', 'Theta (deg)',
             #                        'Aux In 1', 'Aux In 2', 'Frequency', 'Phase']
 
-            self.column_headers = [self.abscissa_name[0]]
-            if self.settings.ui.is_record_x.isChecked():
-                self.column_headers.append('X (Vrms)')
-            if self.settings.ui.is_record_y.isChecked():
-                self.column_headers.append('Y (Vrms)')
-            if self.settings.ui.is_record_r.isChecked():
-                self.column_headers.append('R (Vrms)')
-            if self.settings.ui.is_record_theta.isChecked():
-                self.column_headers.append('Theta (deg)')
-            if self.settings.ui.is_record_auxin1.isChecked():
-                self.column_headers.append('Aux In 1')
-            if self.settings.ui.is_record_auxin2.isChecked():
-                self.column_headers.append('Aux In 2')
-            if self.settings.ui.is_record_freq.isChecked():
-                self.column_headers.append('Frequency')
-            if self.settings.ui.is_record_phase.isChecked():
-                self.column_headers.append('Phase')
+            # Here I could loop over all enabled demodulators to initialize the column headers.
+            if self.settings.lockin_model == 'UHFLI':
+                enabled_demods = self.zi_lockin.get_enabled_demods()
+                num_enabled_demods = len(enabled_demods)
+            else:
+                num_enabled_demods = 1
 
-            self.ui.upper_plot_obs_cmbx.addItems(self.column_headers[1:6])
+            self.column_headers = [self.abscissa_name[0]]
+            for ii in range(0, num_enabled_demods):
+                if not self.settings.lockin_model == 'SMBPowerMeter':
+                    # One copy of each column header for each demodulator in use
+                    if self.settings.ui.is_record_x.isChecked():
+                        self.column_headers.append('X (Vrms) - Demod %i' % (enabled_demods[ii] + 1))
+                    if self.settings.ui.is_record_y.isChecked():
+                        self.column_headers.append('Y (Vrms) - Demod %i' % (enabled_demods[ii] + 1))
+                    if self.settings.ui.is_record_r.isChecked():
+                        self.column_headers.append('R (Vrms) - Demod %i' % (enabled_demods[ii] + 1))
+                    if self.settings.ui.is_record_theta.isChecked():
+                        self.column_headers.append('Theta (deg) - Demod %i' % (enabled_demods[ii] + 1))
+                    if self.settings.ui.is_record_freq.isChecked():
+                        self.column_headers.append('Frequency - Demod %i' % (enabled_demods[ii] + 1))
+                if self.settings.lockin_model == 'UHFLI':
+                    # The SR830/844 doesn't have a "phase" measurement, but does have all the above
+                    if self.settings.ui.is_record_phase.isChecked():
+                        self.column_headers.append('Phase - Demod %i' % (enabled_demods[ii] + 1))
+                elif self.settings.lockin_model == 'SMBPowerMeter':
+                    self.column_headers.append('Power (dBm)')
+                    self.column_headers.append('Power (W)')
+
+            if not self.settings.lockin_model == 'SMBPowerMeter':
+                # These settings should not be repeated for multiple demodulators, as they are independent inputs.
+                if self.settings.ui.is_record_auxin1.isChecked():
+                        self.column_headers.append('Aux In 1')
+                if self.settings.ui.is_record_auxin2.isChecked():
+                        self.column_headers.append('Aux In 2')
+            # self.column_headers = [self.abscissa_name[0]]
+            # if not self.settings.lockin_model == 'SMBPowerMeter':
+            #     if self.settings.ui.is_record_x.isChecked():
+            #         self.column_headers.append('X (Vrms)')
+            #     if self.settings.ui.is_record_y.isChecked():
+            #         self.column_headers.append('Y (Vrms)')
+            #     if self.settings.ui.is_record_r.isChecked():
+            #         self.column_headers.append('R (Vrms)')
+            #     if self.settings.ui.is_record_theta.isChecked():
+            #         self.column_headers.append('Theta (deg)')
+            #     if self.settings.ui.is_record_auxin1.isChecked():
+            #         self.column_headers.append('Aux In 1')
+            #     if self.settings.ui.is_record_auxin2.isChecked():
+            #         self.column_headers.append('Aux In 2')
+            #     if self.settings.ui.is_record_freq.isChecked():
+            #         self.column_headers.append('Frequency')
+            # if self.settings.lockin_model == 'UHFLI':
+            #     if self.settings.ui.is_record_phase.isChecked():
+            #         self.column_headers.append('Phase')
+            # elif self.settings.lockin_model == 'SMBPowerMeter':
+            #     self.column_headers.append('Power (dBm)')
+            #     self.column_headers.append('Power (W)')
+
+            self.ui.upper_plot_obs_cmbx.clear()
+            self.ui.lower_plot_obs_cmbx.clear()
+            self.ui.upper_plot_obs_cmbx.addItems(self.column_headers[1:])
+            # self.ui.upper_plot_obs_cmbx.addItems(self.column_headers[1:6])
             self.ui.upper_plot_obs_cmbx.setCurrentIndex(0)
-            self.ui.lower_plot_obs_cmbx.addItems(self.column_headers[1:6])
+            self.ui.lower_plot_obs_cmbx.addItems(self.column_headers[1:])
+            # self.ui.lower_plot_obs_cmbx.addItems(self.column_headers[1:6])
             self.ui.lower_plot_obs_cmbx.setCurrentIndex(1)
 
             # self.ave_data_df = pd.DataFrame(columns=self.column_headers)
@@ -604,12 +680,18 @@ class MainWindow(QMainWindow):
 
             self.clear_plots()
 
-            demod = self.settings.ui.uhfli_demodulator_idx_spbx.value()
             if not self.is_debug_mode:
-                data_collection_worker = helpers.Worker(self.collect_data, filename, filetype, demod)
+                data_collection_worker = helpers.Worker(self.collect_data, filename, filetype, enabled_demods)
                 self.thread_pool.start(data_collection_worker)
             else:
-                self.collect_data(filename, filetype, demod)
+                self.collect_data(filename, filetype, enabled_demods)
+            # Should I just switch demod to an array of all enabled demods?
+            # demod = self.settings.ui.uhfli_demodulator_idx_spbx.value()
+            # if not self.is_debug_mode:
+            #     data_collection_worker = helpers.Worker(self.collect_data, filename, filetype, demod)
+            #     self.thread_pool.start(data_collection_worker)
+            # else:
+            #     self.collect_data(filename, filetype, demod)
         else:
             self.general_error_signal.emit({'Title': ' - Warning - ',
                                             'Text': ' Experiment Aborted',
@@ -618,7 +700,7 @@ class MainWindow(QMainWindow):
 
 
     @helpers.measure_time
-    def collect_data(self, filename=None, filetype=None, demod=None):
+    def collect_data(self, filename=None, filetype=None, enabled_demods=None):
         #TODO: Incorporate 2D Data
         # 1. SAMPLING Rate for the SR844 is currently used no matter which lock-in you choose (bad)
         print('---------------------------------- BEGINNING MAIN EXPERIMENT LOOP -------------------------------------')
@@ -631,10 +713,17 @@ class MainWindow(QMainWindow):
             # Repeat entire 2D scan dim2_scan_num times
 
             if self.num_dims == 2:
+                self.ready_for_new_scan(which_abscissa=1)
+            else:
                 pass
 
             dim2_step_num = 0
             while dim2_step_num < self.step_count[1]:
+                # if self.num_dims == 2:
+                #     self.ready_for_new_scan(which_abscissa=1)
+                # else:
+                #     pass
+
                 # All stopping points in the second dimension (abscissa[1])
                 if self.abort_scan is True:
                     return
@@ -663,9 +752,9 @@ class MainWindow(QMainWindow):
                     # self.ave_data_df = pd.DataFrame(columns=self.column_headers)
 
                 if self.num_dims == 2:
-                    self.status_message_signal.emit('2D Experiments Under Construction')
                     # Before UHFLI
                     next_step_dim2 = self.step_pts[1][dim2_step_num]
+                    self.status_message_signal.emit('Setting Abscissa 2 to Value: ' + str(next_step_dim2))
                     print('Next Step (dim2) is: ' + str(next_step_dim2) + '(' + str(dim2_step_num + 1) + ' of ' + str(self.step_count[1]) + ')')
                     self.current_position[1] = float(self.set_abscissa(which_abscissa=1, next_step=next_step_dim2))
                     # self.axis_1.set_title(str(self.current_position[1]) + self.units[1])
@@ -695,7 +784,7 @@ class MainWindow(QMainWindow):
                         next_step = self.step_pts[0][step_num]
                         print('Next Step (dim1 ) is: ' + str(next_step) + '(' + str(step_num + 1) + ' of ' + str(self.step_count[0]) + ')')
 
-                        cur_pos = self.set_abscissa(which_abscissa=0, next_step=next_step);
+                        cur_pos = self.set_abscissa(which_abscissa=0, next_step=next_step)
 
                         # At the moment, set_abscissa is typically the source of self.abort_scan=True
                         if cur_pos is None and self.abort_scan is True:
@@ -703,18 +792,33 @@ class MainWindow(QMainWindow):
 
                         self.current_position[0] = float(cur_pos)
 
-                        if not self.is_recording_transient:
-                            self.current_sample = self.get_lockin_results(demod)
+                        for pp in range(0, len(enabled_demods)):
+                            # If more than one demodulator is enabled, loop over all of them.
+                            if not self.is_recording_transient:
+                                self.current_sample = self.get_lockin_results(enabled_demods[pp] + 1)
 
-                        elif self.is_recording_transient:   # Each output is a full time trace now
-                            self.status_message_signal.emit('Transient Measurement Under Construction...')
+                            elif self.is_recording_transient:   # Each output is a full time trace now
+                                self.status_message_signal.emit('Transient Measurement Under Construction...')
 
-                        self.distribute_results(step_num, scan_num, dim2_step_num, dim2_scan_num)
+                            self.distribute_results(step_num, scan_num, dim2_step_num, dim2_scan_num, enabled_demods[pp])
 
                         if not self.is_debug_mode:
                             self.results_are_in_signal.emit(step_num, scan_num)     # Lets the UI know it's time to plot results
                         elif self.is_debug_mode:
                             self.plot_results(step_num, scan_num)
+
+                        # if not self.is_recording_transient:
+                        #     self.current_sample = self.get_lockin_results(demod)
+
+                        # elif self.is_recording_transient:   # Each output is a full time trace now
+                        #     self.status_message_signal.emit('Transient Measurement Under Construction...')
+
+                        # self.distribute_results(step_num, scan_num, dim2_step_num, dim2_scan_num)
+
+                        # if not self.is_debug_mode:
+                        #     self.results_are_in_signal.emit(step_num, scan_num)     # Lets the UI know it's time to plot results
+                        # elif self.is_debug_mode:
+                        #     self.plot_results(step_num, scan_num)
 
                         # Update the stored data container
                         # self.stored_data.replace_scan(self.current_scan, dim2_scan_num, dim2_step_num, scan_num)
@@ -735,9 +839,22 @@ class MainWindow(QMainWindow):
         self.abort_scan = False
         self.experiment_in_progress = False
         print('------------------------------------- EXPERIMENT COMPLETED --------------------------------------------')
+        if self.stop_smb100a_after_expt:
+            self.smb100a.stop()
+        if self.zero_magnet_after_expt:
+            self.cryostat.set_field(target_field=0)
+            # self.cryostat.zero_magnet()
 
     @helpers.measure_time
     def set_abscissa(self, which_abscissa, next_step):
+
+        # The magnet settling delay is 5 seconds. Kill 2 birds with one stone.
+        if self.tf_pause_microwaves_for_cooling and not self.abscissae[which_abscissa] == 3:
+            self.smb100a.stop()
+            print('Turning off Microwave Output for ' + str(self.mw_cooling_delay) + ' seconds')
+            time.sleep(self.mw_cooling_delay)
+            self.smb100a.run()
+
         wa = which_abscissa
         if self.abscissae[wa] is None or self.abscissae[wa] == 0:  # Empty Header line
             print('No Abscissa - Step is Point Number')
@@ -802,6 +919,9 @@ class MainWindow(QMainWindow):
                 self.abort_scan = True
                 return None
             else:
+                if self.tf_pause_microwaves_for_cooling:
+                    self.smb100a.stop()
+
                 self.cryostat.set_field(target_field=next_step)
                 if self.cryostat.error.status:
                     self.general_error_signal.emit({'Title': ' - Warning - ',
@@ -812,6 +932,13 @@ class MainWindow(QMainWindow):
                 actual_pos = self.cryostat.settings.current_field
                 print('Waiting magnet_settling_time = ' + str(self.cryostat.settings.magnet_settling_time) + ' seconds')
                 time.sleep(self.cryostat.settings.magnet_settling_time)
+
+                if self.tf_pause_microwaves_for_cooling:
+                    leftover_wait = self.mw_cooling_delay - self.cryostat.settings.magnet_settling_time
+                    if leftover_wait > 0:
+                        time.sleep(leftover_wait)
+
+                    self.smb100a.run()
 
         elif self.abscissae[wa] == 4:  # RF Carrier Frequency
             print('------------------------ SETTING RF FREQUENCY -------------------------')
@@ -895,12 +1022,20 @@ class MainWindow(QMainWindow):
         wa = which_abscissa
         if self.abscissae[wa] == 3:     # Magnet is what's being set
             if self.settings.cryostat.is_zero_magnet_between_scans:
+                if self.tf_pause_microwaves_for_cooling:
+                    print('Pausing Microwaves during field zeroing')
+                    self.smb100a.stop()
+
                 self.status_message_signal.emit('Re-Zeroing Magnet...')
                 self.cryostat.zero_magnet()
                 for ii in range(0, 63):     # I measured it once to take 61 seconds
                     time.sleep(1)
                     self.status_message_signal.emit('Zeroing Magnet... %s seconds remaining' % (62 - ii))
                 self.status_message_signal.emit('Magnet Zeroed')
+
+                if self.tf_pause_microwaves_for_cooling:
+                    print('Turning microwaves back on')
+                    self.smb100a.run()
             else:
                 self.status_message_signal.emit('Pausing for Magnet Settling...')
                 time.sleep(self.settings.cryostat.magnet_prescan_settling_time)
@@ -911,6 +1046,12 @@ class MainWindow(QMainWindow):
 
     @helpers.measure_time
     def get_lockin_results(self, demod=None):
+
+        if self.settings.lockin_model == 'SMBPowerMeter':
+            print('Pausing for power meter to settle')
+            time.sleep(self.lockin_delay)  # Wait for the lock-in output to settle
+            sample = self.smb100a.read_power_meter()
+            return sample
         print('Checking for lock-in issues...')
         # As in overloads, phase locking to reference, etc.
 
@@ -936,26 +1077,43 @@ class MainWindow(QMainWindow):
                 self.pause_scan = True
                 # The following should be optimized
                 self.sr_lockin_status_warning_signal.emit(str(lia_status))
-        else:
+        elif self.settings.lockin_model == 'UHFLI':
+            # Check current demodulator. Must be EITHER: (1) internal/manual referencing, or (2) phase-locked
             if 1 <= demod <= 4:
-                osc_idx = 0
+                ext_ref_idx = 0
             elif 4 < demod:
-                osc_idx = 1
-            lia_locked = bool(self.zi_lockin.daq.getDouble("/%s/extrefs/%d/locked" % (self.zi_lockin.device, osc_idx)))
+                ext_ref_idx = 1
 
-            kk = 0
-            t0 = time.time()
-            while kk < 200 and not lia_locked:
+            trig_mode_idx = self.zi_lockin.daq.getDouble("/%s/extrefs/%d/enable" % (self.zi_lockin.device, ext_ref_idx))
+            if trig_mode_idx == 0:
+                internal_trig_tf = True
+            else:
+                internal_trig_tf = False
+
+            if internal_trig_tf or self.abscissae[0] == 6 or self.abscissae[1] == 6:
+                # If internally referencing, do not check if PLL is locked to external ref (it won't be)
+                pass
+            else:
+                # If EXTERNALLY referencing, wait for confirmation that the internal oscillator is locked to ext ref
+                if 1 <= demod <= 4:
+                    osc_idx = 0
+                elif 4 < demod:
+                    osc_idx = 1
                 lia_locked = bool(self.zi_lockin.daq.getDouble("/%s/extrefs/%d/locked" % (self.zi_lockin.device, osc_idx)))
-                time.sleep(0.001)
-                kk = kk + 1
 
-            if not lia_locked:  #
-                self.pause_scan = True
-                # The following should be optimized
-                self.sr_lockin_status_warning_signal.emit('NA\n Zurich Instruments LIA could not lock to reference')
+                kk = 0
+                t0 = time.time()
+                while kk < 1000 and not lia_locked:
+                    lia_locked = bool(self.zi_lockin.daq.getDouble("/%s/extrefs/%d/locked" % (self.zi_lockin.device, osc_idx)))
+                    time.sleep(0.001)
+                    kk = kk + 1
 
-            print('Zurich Lock-in locked on ' + str(kk) + 'th iteration (took ' + str(time.time() - t0) + ' seconds')
+                if not lia_locked:  #
+                    self.pause_scan = True
+                    # The following should be optimized
+                    self.sr_lockin_status_warning_signal.emit('NA\n Zurich Instruments LIA could not lock to reference')
+
+                print('Zurich Lock-in locked on ' + str(kk) + 'th iteration (took ' + str(time.time() - t0) + ' seconds')
 
 
         print('Pausing for Lock-in settling...')
@@ -1004,7 +1162,7 @@ class MainWindow(QMainWindow):
 
 
     @helpers.measure_time
-    def distribute_results(self, step_num, scan_num, dim2_step_num, dim2_scan_num):
+    def distribute_results(self, step_num, scan_num, dim2_step_num, dim2_scan_num, demod_idx):
         # x = self.sample["x"]
         t0 = time.time()
         self.actual_x_values[step_num] = self.current_position[0]
@@ -1016,38 +1174,88 @@ class MainWindow(QMainWindow):
         print('Step 1 took ' + str(delta_t) + ' seconds')
 
         t0 = time.time()
-        if 'X (Vrms)' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
+        # Within the data structures (sum_scans, ave_data_df, current_scan), search for the appropriate place to put the new data, based on
+        # column header (which includes demodulator index in human form (1-based indexing)) and step number. 
+        if 'X (Vrms) - Demod ' + str(demod_idx + 1) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["x"]
             if scan_num == 0:
-                self.sum_scans.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
+                self.sum_scans.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["x"]
             else:
-                self.sum_scans.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] + \
+                self.sum_scans.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] + \
                                                            self.current_sample["x"]
-            self.ave_data_df.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] / (scan_num + 1)
-        if 'Y (Vrms)' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
+            self.ave_data_df.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'X (Vrms) - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        if 'Y (Vrms) - Demod ' + str(demod_idx + 1) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["y"]
             if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
+                self.sum_scans.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["y"]
             else:
-                self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] + self.current_sample["y"]
+                self.sum_scans.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] + self.current_sample["y"]
 
-            self.ave_data_df.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] / (scan_num + 1)
-        if 'R (Vrms)' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
+            self.ave_data_df.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Y (Vrms) - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        if 'R (Vrms) - Demod ' + str(demod_idx + 1) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["R"]
             if scan_num == 0:
-                self.sum_scans.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
+                self.sum_scans.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] = self.current_sample["R"]
             else:
-                self.sum_scans.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] + self.current_sample["R"]
+                self.sum_scans.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] + self.current_sample["R"]
 
-            self.ave_data_df.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] / (scan_num + 1)
-        if 'Theta (deg)' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
+            self.ave_data_df.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'R (Vrms) - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        if 'Theta (deg) - Demod ' + str(demod_idx + 1) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] = self.current_sample["theta"]
             if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
+                self.sum_scans.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] = self.current_sample["theta"]
             else:
-                self.sum_scans.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] + self.current_sample[
+                self.sum_scans.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] + self.current_sample[
                 "theta"]
-            self.ave_data_df.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] / (scan_num + 1)
+            self.ave_data_df.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Theta (deg) - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        if 'Frequency - Demod ' + str(demod_idx + 1) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] = self.current_sample["frequency"]
+            if scan_num == 0:
+                self.sum_scans.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] = self.current_sample["frequency"]
+            else:
+                self.sum_scans.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] + self.current_sample["frequency"]
+
+            self.ave_data_df.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Frequency - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        if 'Phase - Demod ' + str(demod_idx) in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] = self.current_sample["phase"]
+            if scan_num == 0:
+                self.sum_scans.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] = self.current_sample["phase"]
+            else:
+                self.sum_scans.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] + self.current_sample["phase"]
+
+            self.ave_data_df.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] = self.sum_scans.loc[step_num, 'Phase - Demod ' + str(demod_idx + 1)] / (scan_num + 1)
+        # if 'X (Vrms)' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'X (Vrms)'] = self.current_sample["x"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] + \
+        #                                                    self.current_sample["x"]
+        #     self.ave_data_df.loc[step_num, 'X (Vrms)'] = self.sum_scans.loc[step_num, 'X (Vrms)'] / (scan_num + 1)
+        # if 'Y (Vrms)' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.current_sample["y"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] + self.current_sample["y"]
+
+        #     self.ave_data_df.loc[step_num, 'Y (Vrms)'] = self.sum_scans.loc[step_num, 'Y (Vrms)'] / (scan_num + 1)
+        # if 'R (Vrms)' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'R (Vrms)'] = self.current_sample["R"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] + self.current_sample["R"]
+
+        #     self.ave_data_df.loc[step_num, 'R (Vrms)'] = self.sum_scans.loc[step_num, 'R (Vrms)'] / (scan_num + 1)
+        # if 'Theta (deg)' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'Theta (deg)'] = self.current_sample["theta"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] + self.current_sample[
+        #         "theta"]
+        #     self.ave_data_df.loc[step_num, 'Theta (deg)'] = self.sum_scans.loc[step_num, 'Theta (deg)'] / (scan_num + 1)
         if 'Aux In 1' in self.current_scan.columns:
             self.current_scan.loc[step_num, 'Aux In 1'] = self.current_sample["auxin0"]
             if scan_num == 0:
@@ -1064,22 +1272,40 @@ class MainWindow(QMainWindow):
                 self.sum_scans.loc[step_num, 'Aux In 2'] = self.sum_scans.loc[step_num, 'Aux In 2'] + self.current_sample["auxin1"]
 
             self.ave_data_df.loc[step_num, 'Aux In 2'] = self.sum_scans.loc[step_num, 'Aux In 2'] / (scan_num + 1)
-        if 'Frequency' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
-            else:
-                self.sum_scans.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] + self.current_sample["frequency"]
+        # if 'Frequency' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'Frequency'] = self.current_sample["frequency"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] + self.current_sample["frequency"]
 
-            self.ave_data_df.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] / (scan_num + 1)
-        if 'Phase' in self.current_scan.columns:
-            self.current_scan.loc[step_num, 'Phase'] = self.current_sample["phase"]
-            if scan_num == 0:
-                self.sum_scans.loc[step_num, 'Phase'] = self.current_sample["phase"]
-            else:
-                self.sum_scans.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] + self.current_sample["phase"]
+        #     self.ave_data_df.loc[step_num, 'Frequency'] = self.sum_scans.loc[step_num, 'Frequency'] / (scan_num + 1)
+        # if 'Phase' in self.current_scan.columns:
+        #     self.current_scan.loc[step_num, 'Phase'] = self.current_sample["phase"]
+        #     if scan_num == 0:
+        #         self.sum_scans.loc[step_num, 'Phase'] = self.current_sample["phase"]
+        #     else:
+        #         self.sum_scans.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] + self.current_sample["phase"]
 
-            self.ave_data_df.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] / (scan_num + 1)
+        #     self.ave_data_df.loc[step_num, 'Phase'] = self.sum_scans.loc[step_num, 'Phase'] / (scan_num + 1)
+        if 'Power (dBm)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Power (dBm)'] = self.current_sample["Power (dBm)"]
+            if scan_num == 0:
+                self.sum_scans.loc[step_num, 'Power (dBm)'] = self.current_sample["Power (dBm)"]
+            else:
+                self.sum_scans.loc[step_num, 'Power (dBm)'] = self.sum_scans.loc[step_num, 'Power (dBm)'] + self.current_sample["Power (dBm)"]
+
+            self.ave_data_df.loc[step_num, 'Power (dBm)'] = self.sum_scans.loc[step_num, 'Power (dBm)'] / (scan_num + 1)
+        if 'Power (W)' in self.current_scan.columns:
+            self.current_scan.loc[step_num, 'Power (W)'] = self.current_sample["Power (W)"]
+            if scan_num == 0:
+                self.sum_scans.loc[step_num, 'Power (W)'] = self.current_sample["Power (W)"]
+            else:
+                self.sum_scans.loc[step_num, 'Power (W)'] = self.sum_scans.loc[step_num, 'Power (W)'] + \
+                                                              self.current_sample["Power (W)"]
+
+            self.ave_data_df.loc[step_num, 'Power (W)'] = self.sum_scans.loc[step_num, 'Power (W)'] / (
+                        scan_num + 1)
 
         delta_t = time.time() - t0
         print('Step 2 took ' + str(delta_t) + ' seconds')
@@ -1134,6 +1360,21 @@ class MainWindow(QMainWindow):
 
             ave_ch1 = self.ave_data_df.loc[:, upper_plot_y_axis].to_numpy(np.float32)
             ave_ch2 = self.ave_data_df.loc[:, lower_plot_y_axis].to_numpy(np.float32)
+
+            # Make sure that the arrays are the same length (data plots in parallel to data collection)
+            lengths = np.array([len(cur_x), len(cur_scan), len(cur_ch1), len(cur_ch2)])
+            min_len = np.min(lengths)
+            cur_x = cur_x[0:min_len]
+            cur_scan = cur_scan[0:min_len]
+            cur_ch1 = cur_ch1[0:min_len]
+            cur_ch2 = cur_ch2[0:min_len]
+
+            ave_x = self.actual_x_values
+            lengths_ave = np.array([len(ave_x), len(ave_ch1), len(ave_ch2)])
+            min_len_ave = np.min(lengths_ave)
+            ave_x = ave_x[0:min_len_ave]
+            ave_ch1 = ave_ch1[0:min_len_ave]
+            ave_ch2 = ave_ch2[0:min_len_ave]
 
         else:
             pass
@@ -1209,30 +1450,50 @@ class MainWindow(QMainWindow):
                                          symbolPen=color_plot1, symbolSize=self.marker_size, name='Current Scan')
 
             if self.line_style is None:
+                # print('No lines - Average')
+                # self.plot3 = self.ui.PlotWidget.plot(self.actual_x_values, ave_ch1,
+                #                         pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # # self.ui.PlotWidget.addLegend()
+                # self.plot4 = self.ui.PlotWidget2.plot(self.actual_x_values, ave_ch2,
+                #                          pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # # self.ui.PlotWidget2.addLegend()
                 print('No lines - Average')
-                self.plot3 = self.ui.PlotWidget.plot(self.actual_x_values, ave_ch1,
-                                        pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                self.plot3 = self.ui.PlotWidget.plot(ave_x, ave_ch1,
+                                                     pen=None, symbol='o', symbolPen='#FF0000',
+                                                     symbolSize=self.marker_size, name='Average')
                 # self.ui.PlotWidget.addLegend()
-                self.plot4 = self.ui.PlotWidget2.plot(self.actual_x_values, ave_ch2,
-                                         pen=None, symbol='o', symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                self.plot4 = self.ui.PlotWidget2.plot(ave_x, ave_ch2,
+                                                      pen=None, symbol='o', symbolPen='#FF0000',
+                                                      symbolSize=self.marker_size, name='Average')
                 # self.ui.PlotWidget2.addLegend()
             else:
+                # print('Lines - Average')
+                # self.plot3 = self.ui.PlotWidget.plot(self.actual_x_values, ave_ch1,
+                #                         pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                #                         symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # # self.ui.PlotWidget.addLegend()
+                # self.plot4 = self.ui.PlotWidget2.plot(self.actual_x_values, ave_ch2,
+                #                          pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                #                          symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                # # self.ui.PlotWidget2.addLegend()
                 print('Lines - Average')
-                self.plot3 = self.ui.PlotWidget.plot(self.actual_x_values, ave_ch1,
-                                        pen=pg.mkPen('#FF0000', width=1), symbol='o',
-                                        symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                self.plot3 = self.ui.PlotWidget.plot(ave_x, ave_ch1,
+                                                     pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                                                     symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
                 # self.ui.PlotWidget.addLegend()
-                self.plot4 = self.ui.PlotWidget2.plot(self.actual_x_values, ave_ch2,
-                                         pen=pg.mkPen('#FF0000', width=1), symbol='o',
-                                         symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
+                self.plot4 = self.ui.PlotWidget2.plot(ave_x, ave_ch2,
+                                                      pen=pg.mkPen('#FF0000', width=1), symbol='o',
+                                                      symbolPen='#FF0000', symbolSize=self.marker_size, name='Average')
                 # self.ui.PlotWidget2.addLegend()
         elif jj > 0 and ii > 0:
             print('Second Scan Plotting')
             self.plot1.setData(cur_x, cur_ch1)
             self.plot2.setData(cur_x, cur_ch2)
 
-            self.plot3.setData(self.actual_x_values, ave_ch1)
-            self.plot4.setData(self.actual_x_values, ave_ch2)
+            # self.plot3.setData(self.actual_x_values, ave_ch1)
+            # self.plot4.setData(self.actual_x_values, ave_ch2)
+            self.plot3.setData(ave_x, ave_ch1)
+            self.plot4.setData(ave_x, ave_ch2)
         return
 
     # @helpers.measure_time
@@ -1497,6 +1758,11 @@ class MainWindow(QMainWindow):
         self.settings.setWindowState(self.settings.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         self.settings.activateWindow()
 
+    # @QtCore.pyqtSlot()
+    # def get_enabled_demods(self):
+    #     print('Checking which demods are enabled')
+        
+
     @QtCore.pyqtSlot(str)
     def cg635_freq_changed_slot(self, new_freq):
         self.settings.ui.cg635_set_freq_spbx.setValue(float(new_freq))
@@ -1526,6 +1792,7 @@ class MainWindow(QMainWindow):
         cmd_to_write = self.settings.ui.smb100a_write_cmd_lnedt.text()
         print(cmd_to_write)
         response = self.smb100a.write_string(cmd_to_write, read=True, manual=True)
+        print('Response: ' + str(response))
         self.settings.ui.smb100a_response_textedit.setText(response)
 
     def enable_all_ui_objects(self):
@@ -1670,118 +1937,175 @@ class MainWindow(QMainWindow):
     #
     #     plt.show(block=False)
 
+    # Leo made this below temporarily to try to add the functionality of choosing which steps you wanted to scan
+    # rather than having to do a full sweep. It has been incorporated into the functionality of calc_steps_from_num
+
+    # @QtCore.pyqtSlot(bool)
+    # def set_manual_steps(self, is_checked):
+    #     print(str(is_checked))
+        
+    #     if is_checked:
+    #         user_input = self.ui.input_values_table_dim2.toPlainText()
+    #         listofinputs = re.split("\n |\n|, |,|; |;| ",user_input)
+            
+    #         print(listofinputs)
+    #         for entry in listofinputs:
+    #             try:
+    #                 newentry = float(entry)
+    #             except ValueError:
+    #                 print('one or more entries is/are not numeric')
+    #     else:
+    #         pass
+        
+    # 
+
     @QtCore.pyqtSlot()
     def calc_steps_from_num(self, dim_idx=0):
         idx = dim_idx
         print('inside calc_from_num')
-        self.step_count[idx] = self.num_steps_spbxs[idx].value()
+        
+        # the following add the functionality of choosing certain freuencies rather than having to sweep
+
+        is_manual_steps = self.manual_steps_checkboxes[idx].isChecked()
 
         if not self.experiment_in_progress:
-            self.clear_plots()
-            # if self.plot1 is not None:
-            #     self.ui.PlotWidget.removeItem(self.plot1)
-            #     self.plot1 = None
-            # if self.plot2 is not None:
-            #     self.ui.PlotWidget2.removeItem(self.plot2)
-            #     self.plot2 = None
-            # if self.plot3 is not None:
-            #     self.ui.PlotWidget.removeItem(self.plot3)
-            #     self.plot3 = None
-            # if self.plot4 is not None:
-            #     self.ui.PlotWidget2.removeItem(self.plot4)
-            #     self.plot4 = None
+                self.clear_plots()
+                # if self.plot1 is not None:
+                #     self.ui.PlotWidget.removeItem(self.plot1)
+                #     self.plot1 = None
+                # if self.plot2 is not None:
+                #     self.ui.PlotWidget2.removeItem(self.plot2)
+                #     self.plot2 = None
+                # if self.plot3 is not None:
+                #     self.ui.PlotWidget.removeItem(self.plot3)
+                #     self.plot3 = None
+                # if self.plot4 is not None:
+                #     self.ui.PlotWidget2.removeItem(self.plot4)
+                #     self.plot4 = None
 
-        if self.abscissae[idx] is None or self.abscissae[idx] == 0:
-            self.scale_factor[idx] = 1
-            self.start[idx] = 1
-            self.end[idx] = self.step_count[idx]
-            self.sweep_start_spbxs[idx].setEnabled(True)
-            self.sweep_end_spbxs[idx].setEnabled(True)
-            self.sweep_start_spbxs[idx].setValue(self.start[idx])
-            self.sweep_end_spbxs[idx].setValue(self.end[idx])
-            self.sweep_start_spbxs[idx].setEnabled(False)
-            self.sweep_end_spbxs[idx].setEnabled(False)
-            self.log_spacing_checkboxes[idx].blockSignals(True)     # Prevents infinite recursion
-            self.log_spacing_checkboxes[idx].setChecked(False)
-            self.log_spacing_checkboxes[idx].blockSignals(False)
-            self.log_spacing[idx] = False
-        elif self.abscissae[idx] == 1:
-            self.scale_factor[idx] = 10**(3*self.units_cbxes[idx].currentIndex())
-            self.end[idx] = (self.sweep_end_spbxs[idx].value()) * self.scale_factor[idx]
-            self.start[idx] = (self.sweep_start_spbxs[idx].value()) * self.scale_factor[idx]
-        else:
-            self.scale_factor[idx] = 1
-            self.end[idx] = (self.sweep_end_spbxs[idx].value()) * self.scale_factor[idx]
-            self.start[idx] = (self.sweep_start_spbxs[idx].value()) * self.scale_factor[idx]
+        
+        if is_manual_steps:
+            # pass
+            user_input = self.ui.input_values_table_dim2.toPlainText()
+            listofinputs = re.split("\n |\n|, |,|; |;| ",user_input)
+            
+            print(listofinputs)
 
-        self.scan_range[idx] = self.end[idx] - self.start[idx]
+            step_pts = []
 
-        if self.log_spacing[idx]:
-            print('inside log case')
-            self.is_x_log_scaled[idx] = True
-            self.step_size_displays[idx].setText('N/A')
-            log_start = np.log10(self.start[idx])
-            log_end = np.log10(self.end[idx])
-            try:
-                if self.step_count[idx] != 1:
-                    log_step_size = np.abs(log_end - log_start) / (self.step_count[idx] - 1)
-                    step_pts = []
+            for entry in listofinputs:
+                try:
+                    newentry = float(entry)
+                    step_pts.append(newentry)
+                except ValueError:
+                    print('one or more entries is/are not numeric')
+                    step_pts.clear
 
-                    if self.start[idx] < self.end[idx]:
-                        for ii in range(0, self.step_count[idx]):
-                            log_next_step = log_start + (ii * log_step_size)
-                            step_pts.append(10 ** log_next_step)
+            print(step_pts)
 
-                    else:
-                        print('attempting inverted scan direction (log scaling')
-                        for ii in range(0, self.step_count[idx]):
-                            log_next_step = log_start - (ii * log_step_size)
-                            step_pts.append(10 ** log_next_step)
+            self.step_pts[idx] = step_pts
+            steps_to_display = str(np.round(np.array(self.step_pts[idx]), 3).tolist()).replace(',', '\r')
+            self.steps_displays[idx].setText(steps_to_display)
 
-                    self.step_pts[idx] = step_pts
+            # self.step_count[idx] = 
 
-                else:
-                    self.step_pts[idx] = [self.start[idx]]
-
-                steps_to_display = str(np.round(np.array(self.step_pts[idx]), 3).tolist()).replace(',', '\r')
-                self.steps_displays[idx].setText(steps_to_display)
-
-            except:
-                print(sys.exc_info()[:])
+            self.expt_duration()
+            self.set_1d_plot_properties()
 
         else:
-            print('inside linear case')
-            self.is_x_log_scaled[idx] = False
+            
+            self.step_count[idx] = self.num_steps_spbxs[idx].value()
 
-            try:
-                if self.step_count[idx] != 1:
-                    step_size = np.abs(self.end[idx] - self.start[idx]) / (self.step_count[idx] - 1)
-                    self.step_size[idx] = step_size
-                    self.step_size_displays[idx].setText(str(round(step_size / self.scale_factor[idx], 4)))
-                    step_pts = []
-                    if self.start[idx] < self.end[idx]:
-                        for ii in range(0, self.step_count[idx]):
-                            step_pts.append(self.start[idx] + ii * step_size)
+            if self.abscissae[idx] is None or self.abscissae[idx] == 0:
+                self.scale_factor[idx] = 1
+                self.start[idx] = 1
+                self.end[idx] = self.step_count[idx]
+                self.sweep_start_spbxs[idx].setEnabled(True)
+                self.sweep_end_spbxs[idx].setEnabled(True)
+                self.sweep_start_spbxs[idx].setValue(self.start[idx])
+                self.sweep_end_spbxs[idx].setValue(self.end[idx])
+                self.sweep_start_spbxs[idx].setEnabled(False)
+                self.sweep_end_spbxs[idx].setEnabled(False)
+                self.log_spacing_checkboxes[idx].blockSignals(True)     # Prevents infinite recursion
+                self.log_spacing_checkboxes[idx].setChecked(False)
+                self.log_spacing_checkboxes[idx].blockSignals(False)
+                self.log_spacing[idx] = False
+            elif self.abscissae[idx] == 1:
+                self.scale_factor[idx] = 10**(3*self.units_cbxes[idx].currentIndex())
+                self.end[idx] = (self.sweep_end_spbxs[idx].value()) * self.scale_factor[idx]
+                self.start[idx] = (self.sweep_start_spbxs[idx].value()) * self.scale_factor[idx]
+            else:
+                self.scale_factor[idx] = 1
+                self.end[idx] = (self.sweep_end_spbxs[idx].value()) * self.scale_factor[idx]
+                self.start[idx] = (self.sweep_start_spbxs[idx].value()) * self.scale_factor[idx]
+
+            self.scan_range[idx] = self.end[idx] - self.start[idx]
+
+            if self.log_spacing[idx]:
+                print('inside log case')
+                self.is_x_log_scaled[idx] = True
+                self.step_size_displays[idx].setText('N/A')
+                log_start = np.log10(self.start[idx])
+                log_end = np.log10(self.end[idx])
+                try:
+                    if self.step_count[idx] != 1:
+                        log_step_size = np.abs(log_end - log_start) / (self.step_count[idx] - 1)
+                        step_pts = []
+
+                        if self.start[idx] < self.end[idx]:
+                            for ii in range(0, self.step_count[idx]):
+                                log_next_step = log_start + (ii * log_step_size)
+                                step_pts.append(10 ** log_next_step)
+
+                        else:
+                            print('attempting inverted scan direction (log scaling')
+                            for ii in range(0, self.step_count[idx]):
+                                log_next_step = log_start - (ii * log_step_size)
+                                step_pts.append(10 ** log_next_step)
+
+                        self.step_pts[idx] = step_pts
 
                     else:
-                        for ii in range(0, self.step_count[idx]):
-                            step_pts.append(self.start[idx] - ii * step_size)
+                        self.step_pts[idx] = [self.start[idx]]
 
-                    self.step_pts[idx] = step_pts
-                    # Update plot
-                else:
-                    self.step_pts[idx] = [self.start[idx]]
+                    steps_to_display = str(np.round(np.array(self.step_pts[idx]), 3).tolist()).replace(',', '\r')
+                    self.steps_displays[idx].setText(steps_to_display)
 
-                steps_to_display = str(np.round(np.array(self.step_pts[idx]), 3).tolist()).replace(',', '\r')
-                self.steps_displays[idx].setText(steps_to_display)
+                except:
+                    print(sys.exc_info()[:])
 
-            except:
-                print(sys.exc_info()[:])
+            else:
+                print('inside linear case')
+                self.is_x_log_scaled[idx] = False
 
-            print('about to rescale plot')
-        self.expt_duration()
-        self.set_1d_plot_properties()
+                try:
+                    if self.step_count[idx] != 1:
+                        step_size = np.abs(self.end[idx] - self.start[idx]) / (self.step_count[idx] - 1)
+                        self.step_size[idx] = step_size
+                        self.step_size_displays[idx].setText(str(round(step_size / self.scale_factor[idx], 4)))
+                        step_pts = []
+                        if self.start[idx] < self.end[idx]:
+                            for ii in range(0, self.step_count[idx]):
+                                step_pts.append(self.start[idx] + ii * step_size)
 
+                        else:
+                            for ii in range(0, self.step_count[idx]):
+                                step_pts.append(self.start[idx] - ii * step_size)
+
+                        self.step_pts[idx] = step_pts
+                        # Update plot
+                    else:
+                        self.step_pts[idx] = [self.start[idx]]
+
+                    steps_to_display = str(np.round(np.array(self.step_pts[idx]), 3).tolist()).replace(',', '\r')
+                    self.steps_displays[idx].setText(steps_to_display)
+
+                except:
+                    print(sys.exc_info()[:])
+
+                print('about to rescale plot')
+            self.expt_duration()
+            self.set_1d_plot_properties()
 
     @helpers.measure_time
     def expt_duration(self):
@@ -2307,6 +2631,7 @@ class MainWindow(QMainWindow):
 
         # ----------------------------------------- PROPERTIES UPDATED -------------------------------------------------
         self.zi_lockin.settings_checked_signal[dict].connect(lambda i: self.settings.set_uhfli_settings_states(i))
+        self.zi_lockin.settings_checked_signal2[dict].connect(lambda i: self.settings.set_uhfli_settings_states2(i))
 
         self.sr_lockin.property_updated_signal[str, int].connect(lambda i, j: self.update_instr_property('sr_lockin', i, j))
         self.sr_lockin.property_updated_signal[str, float].connect(lambda i, j: self.update_instr_property('sr_lockin', i, j))
@@ -2365,6 +2690,10 @@ class MainWindow(QMainWindow):
         self.ui.sweep_start_spbx_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
         self.ui.sweep_end_spbx_dim2.valueChanged[float].connect(lambda: self.calc_steps_from_num(dim_idx=1))
         self.ui.log_spacing_checkbox_dim2.toggled['bool'].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+
+        self.ui.manual_values_checkbox.toggled['bool'].connect(lambda: self.calc_steps_from_num(dim_idx=0))
+        self.ui.manual_values_checkbox_dim2.toggled['bool'].connect(lambda: self.calc_steps_from_num(dim_idx=1))
+
         self.ui.num_steps_spbx_dim2.valueChanged[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
         self.ui.sweep_units_cbx_dim2.activated[int].connect(lambda: self.calc_steps_from_num(dim_idx=1))
         self.ui.average_each_point_checkbox.toggled[bool].connect(
@@ -2408,12 +2737,18 @@ class MainWindow(QMainWindow):
         self.settings.ui.cg635_set_current_phase_zero_btn.clicked.connect(self.cg635.set_phase_as_zero)
         self.settings.ui.cg635_check_pll_btn.clicked.connect(self.cg635_check_pll_status)
         self.settings.ui.cg635_write_btn.clicked.connect(self.cg635_write_manual_cmd)
-        self.settings.ui.cg635_set_phase_spbx.valueChanged[float].connect(self.cg635.set_phase)
-        self.settings.ui.cg635_set_freq_spbx.valueChanged[float].connect(
-            lambda i: self.cg635.set_freq(i, scaling_factor=10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())))
+        # self.settings.ui.cg635_set_phase_spbx.valueChanged[float].connect(self.cg635.set_phase)
+        # self.settings.ui.cg635_set_freq_spbx.valueChanged[float].connect(
+        #     lambda i: self.cg635.set_freq(i, scaling_factor=10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())))
+        self.settings.ui.cg635_set_phase_spbx.editingFinished.connect(self.cg635.set_phase)
+        self.settings.ui.cg635_set_freq_spbx.editingFinished.connect(
+            lambda: self.cg635.set_freq(
+                self.settings.ui.cg635_set_freq_spbx.value(),
+                scaling_factor=10 ** (3 * self.settings.ui.cg635_freq_units_cbx.currentIndex())))
 
         self.settings.ui.cg635_max_freq_spbx.valueChanged[float].connect(self.cg635.set_max_freq)
         self.settings.ui.cg635_freq_units_cbx.activated[int].connect(self.set_pump_mod_units)
+
 
         # ---------------------------------------- SRS LOCK-IN ---------------------------------------------------------
 
@@ -2442,11 +2777,16 @@ class MainWindow(QMainWindow):
 
         # ---------------------------------- MOno ----------------------------------------------------------------------
         self.md2000.status_message_signal[str].connect(lambda i: self.ui.statusbar.showMessage(i))
+        self.settings.ui.mono_gr_dens_cbx.currentIndexChanged[int].connect(
+            lambda i: self.update_instr_property('md2000', 'gr_dens_idx', i))
+        self.settings.ui.mono_gr_dens_cbx.currentIndexChanged.connect(lambda: self.md2000.get_k_number())
+
         self.settings.ui.mono_set_home_btn.clicked.connect(
             lambda i: self.md2000.set_home_position(self.settings.ui.mono_cal_wl_spbx.value()))
         self.settings.ui.mono_set_wl_spbx.valueChanged[float].connect(
             lambda i: self.md2000.go_to_wavelength(i, self.settings.md2000.bl_amt, self.settings.md2000.bl_bool))
-        self.settings.ui.mono_bl_comp_chkbx.toggled[bool].connect(lambda i: self.update_md2000_property('bl_bool', i))
+        self.settings.ui.mono_bl_comp_chkbx.toggled[bool].connect(
+            lambda i: self.update_instr_property('md2000','bl_bool', i))
         self.settings.ui.mono_speed_spbx.valueChanged[float].connect(self.md2000.set_speed)
 
         # --------------------------------- CRYOSTAT -------------------------------------------------------------------
@@ -2466,11 +2806,22 @@ class MainWindow(QMainWindow):
         self.settings.ui.smb100a_stop_btn.clicked.connect(self.smb100a.stop)
         self.settings.ui.smb100a_send_cmd_btn.clicked.connect(self.smb100a_write_manual_cmd)
         self.settings.ui.smb100a_modulate_checkbox.toggled[bool].connect(lambda i: self.smb100a.toggle_modulation(i))
-        self.settings.ui.smb100a_set_freq_spbx.valueChanged[float].connect(
-            lambda i: self.smb100a.set_freq(i, self.settings.ui.smb100a_freq_units_cbx.currentText()))
-        self.settings.ui.smb100a_set_power_spbx.valueChanged[float].connect(lambda i: self.smb100a.set_power(i))
-        self.settings.ui.smb100a_set_mod_freq_spbx.valueChanged[float].connect(
-            lambda i: self.smb100a.set_pulse_mod_freq(i, self.settings.ui.smb100a_mod_freq_units.currentText()))
+        # self.settings.ui.smb100a_set_freq_spbx.valueChanged[float].connect(
+        #     lambda i: self.smb100a.set_freq(i, self.settings.ui.smb100a_freq_units_cbx.currentText()))
+        # self.settings.ui.smb100a_set_power_spbx.valueChanged[float].connect(lambda i: self.smb100a.set_power(i))
+        # self.settings.ui.smb100a_set_mod_freq_spbx.valueChanged[float].connect(
+        #     lambda i: self.smb100a.set_pulse_mod_freq(i, self.settings.ui.smb100a_mod_freq_units.currentText()))
+        self.settings.ui.smb100a_set_freq_spbx.editingFinished.connect(
+            lambda: self.smb100a.set_freq(
+                self.settings.ui.smb100a_set_freq_spbx.value(),
+                self.settings.ui.smb100a_freq_units_cbx.currentText()))
+        self.settings.ui.smb100a_set_power_spbx.editingFinished.connect(
+            lambda: self.smb100a.set_power(self.settings.ui.smb100a_set_power_spbx.value()))
+        self.settings.ui.smb100a_set_mod_freq_spbx.editingFinished.connect(
+            lambda: self.smb100a.set_pulse_mod_freq(
+                self.settings.ui.smb100a_set_mod_freq_spbx.value(),
+                self.settings.ui.smb100a_mod_freq_units.currentText()))
+
         self.settings.ui.smb100a_mod_source_cmb.activated[str].connect(
             lambda i: self.update_instr_property('smb100a', 'mod_source', i))
         self.settings.ui.smb100a_mod_source_cmb.activated[str].connect(
@@ -2482,15 +2833,25 @@ class MainWindow(QMainWindow):
         # React to UI interactions
         self.settings.ui.uhfli_get_current_settings_btn.clicked.connect(
             lambda: self.zi_lockin.get_current_settings(
-                demodulator=self.settings.ui.uhfli_demodulator_idx_spbx.value()
+                demodulator=self.settings.ui.uhfli_demodulator_idx_spbx.value(), secondary_tf=False
+            )
+        )
+
+        self.settings.ui.uhfli_get_current_settings_btn.clicked.connect(
+            lambda: self.zi_lockin.get_current_settings(
+                demodulator=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(), secondary_tf=True
             )
         )
 
         self.settings.ui.uhfli_save_settings_btn.clicked.connect(lambda: self.save_or_load_uhfli_settings(tf_save=True))
 
         self.settings.ui.uhfli_load_settings_btn.clicked.connect(lambda: self.save_or_load_uhfli_settings(tf_save=False))
+
         self.settings.ui.uhfli_input_cbx.currentIndexChanged[int].connect(
             lambda i: self.zi_lockin.set_input(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), input_idx=i))
+
+        self.settings.ui.uhfli_input_cbx_2.currentIndexChanged[int].connect(
+            lambda i: self.zi_lockin.set_input(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(), input_idx=i))
         # self.settings.ui.uhfli_range_spbx.valueChanged[float].connect(
         #     lambda i: self.zi_lockin.set_range(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(), input_range=i))
         # self.settings.ui.uhfli_range_spbx_2.valueChanged[float].connect(
@@ -2505,15 +2866,28 @@ class MainWindow(QMainWindow):
         self.settings.ui.uhfli_input_impedance_cbx.activated.connect(
             lambda i: self.zi_lockin.set_input_impedance(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(),
                                                          desired_imp_idx=self.settings.ui.uhfli_input_impedance_cbx.currentIndex()))
+        self.settings.ui.uhfli_input_impedance_cbx_2.activated.connect(
+            lambda i: self.zi_lockin.set_input_impedance(input_idx=self.settings.ui.uhfli_input_cbx_2.currentIndex(),
+                                                         desired_imp_idx=self.settings.ui.uhfli_input_impedance_cbx_2.currentIndex()))
+
         self.settings.ui.uhfli_input_coupling_cbx.activated.connect(
             lambda i: self.zi_lockin.set_input_coupling(input_idx=self.settings.ui.uhfli_input_cbx.currentIndex(),
                                                         desired_coupling_idx=self.settings.ui.uhfli_input_coupling_cbx.currentIndex()))
+        self.settings.ui.uhfli_input_coupling_cbx_2.activated.connect(
+            lambda i: self.zi_lockin.set_input_coupling(input_idx=self.settings.ui.uhfli_input_cbx_2.currentIndex(),
+                                                        desired_coupling_idx=self.settings.ui.uhfli_input_coupling_cbx_2.currentIndex()))
 
         # Reference mode manual (internal) vs external. Disable Frequency spinbox if external control
         self.settings.ui.uhfli_ref_mode_cbx.activated[int].connect(
             lambda i: [
                 self.zi_lockin.set_mode(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), trigger_mode_idx=i),
                 self.toggle_item_enabled(object_name=self.settings.ui.uhfli_freq_spbx, determiner_value=i)
+            ]
+        )
+        self.settings.ui.uhfli_ref_mode_cbx_2.activated[int].connect(
+            lambda i: [
+                self.zi_lockin.set_mode(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(), trigger_mode_idx=i),
+                self.toggle_item_enabled(object_name=self.settings.ui.uhfli_freq_spbx_2, determiner_value=i)
             ]
         )
 
@@ -2525,13 +2899,23 @@ class MainWindow(QMainWindow):
             lambda: self.zi_lockin.set_ref_freq(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
                                                   target_freq=self.settings.ui.uhfli_freq_spbx.value())
         )
+        self.settings.ui.uhfli_freq_spbx_2.editingFinished.connect(
+            lambda: self.zi_lockin.set_ref_freq(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(),
+                                                  target_freq=self.settings.ui.uhfli_freq_spbx_2.value())
+        )
 
         self.settings.ui.uhfli_harm_spbx.valueChanged[int].connect(
             lambda i: self.zi_lockin.set_harmonic(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), harmonic=i)
         )
+        self.settings.ui.uhfli_harm_spbx_2.valueChanged[int].connect(
+            lambda i: self.zi_lockin.set_harmonic(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(), harmonic=i)
+        )
 
         self.settings.ui.uhfli_phase_spbx.valueChanged[float].connect(
             lambda i: self.zi_lockin.set_phase(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(), target_phase=i)
+        )
+        self.settings.ui.uhfli_phase_spbx_2.valueChanged[float].connect(
+            lambda i: self.zi_lockin.set_phase(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(), target_phase=i)
         )
 
         self.settings.ui.uhfli_filter_order_cbx.activated[int].connect(
@@ -2539,6 +2923,13 @@ class MainWindow(QMainWindow):
                 self.zi_lockin.set_filter_order(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
                                                       filter_order=i+1),
                 self.update_tc_bandwidth(tf_primary=True, time_constant=self.settings.ui.uhfli_time_constant_spbx.value())
+            ]
+        )
+        self.settings.ui.uhfli_filter_order_cbx_2.activated[int].connect(
+            lambda i: [
+                self.zi_lockin.set_filter_order(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(),
+                                                      filter_order=i+1),
+                self.update_tc_bandwidth(tf_primary=True, time_constant=self.settings.ui.uhfli_time_constant_spbx_2.value())
             ]
         )
 
@@ -2568,6 +2959,11 @@ class MainWindow(QMainWindow):
 
         self.settings.ui.uhfli_sinc_filtering_chkbx.toggled[bool].connect(
             lambda i: self.zi_lockin.toggle_sinc_filter(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx.value(),
+                                                        tf_enable_sinc=i)
+        )
+
+        self.settings.ui.uhfli_sinc_filtering_chkbx_2.toggled[bool].connect(
+            lambda i: self.zi_lockin.toggle_sinc_filter(demod_idx=self.settings.ui.uhfli_demodulator_idx_spbx_2.value(),
                                                         tf_enable_sinc=i)
         )
 

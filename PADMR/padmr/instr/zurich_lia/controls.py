@@ -81,6 +81,7 @@ class ZiLIA(QtCore.QObject):
     tc_updated_primary_signal_zi = QtCore.pyqtSignal(float)
     tc_updated_secondary_signal_zi = QtCore.pyqtSignal(float)
     settings_checked_signal = QtCore.pyqtSignal(dict)
+    settings_checked_signal2 = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(ZiLIA, self).__init__(*args, **kwargs)
@@ -155,7 +156,7 @@ class ZiLIA(QtCore.QObject):
             self.connected = False
         return did_comms_fail
 
-    def get_current_settings(self, demodulator):
+    def get_current_settings(self, demodulator, secondary_tf=False):
         demod_idx = demodulator - 1
 
         if demod_idx > 3:
@@ -190,11 +191,18 @@ class ZiLIA(QtCore.QObject):
         filter_order = int(self.daq.getDouble("/%s/demods/%d/order" % (self.device, demod_idx)))
         time_constant = self.daq.getDouble("/%s/demods/%d/timeconstant" % (self.device, demod_idx))
 
+        if input_idx < 2:
+            current_range = self.daq.getDouble("/%s/sigins/%d/range" % (self.device, input_idx))
+            input_coupling = int(self.daq.getDouble("/%s/sigins/%d/ac" % (self.device, input_idx)))
+        else:
+            current_range = 0
+            input_coupling = 0
+
         current_settings = {
             "input_idx": input_idx,
             "tf_50ohm": tf_50ohm,
-            "range": self.daq.getDouble("/%s/sigins/%d/range" % (self.device, input_idx)),
-            "coupling": int(self.daq.getDouble("/%s/sigins/%d/ac" % (self.device, input_idx))),
+            "range": current_range,
+            "coupling": input_coupling,
             "tf_ext_trig": tf_ext_trig,
             "automode_idx": automode_idx,
             "ref_freq": self.daq.getDouble("/%s/oscs/%d/freq" % (self.device, osc_idx)),
@@ -206,7 +214,10 @@ class ZiLIA(QtCore.QObject):
             "bw_3db": zhinst.utils.tc2bw(time_constant, filter_order)
         }
         print('Current Settings\n' + str(current_settings))
-        self.settings_checked_signal.emit(current_settings)
+        if not secondary_tf:
+            self.settings_checked_signal.emit(current_settings)
+        else:
+            self.settings_checked_signal2.emit(current_settings)
         return
 
     def save_settings(self, filename):
@@ -284,6 +295,16 @@ class ZiLIA(QtCore.QObject):
 
     def auto_sens(self):
         pass
+
+    def get_enabled_demods(self):
+        print('Checking enabled demods')
+        all_demods = np.array([False, False, False, False, False, False, False, False], dtype=bool)
+        for ii in range(0, 8):
+            enabled_tf = self.daq.getDouble("/%s/demods/%d/enable" % (self.device, ii))
+            all_demods[ii] = bool(enabled_tf)
+        
+        en_demods = np.where(all_demods)[0]
+        return en_demods
 
     def check_for_errors(self):
         pass
@@ -380,8 +401,7 @@ class ZiLIA(QtCore.QObject):
 
     def set_mode(self, demod_idx=4, trigger_mode_idx=1):
         """
-        If demodulator 4 is used, external reference must be connected at Ref 1 (ext_ref_idx=0).
-        If demodulator 8 is used, external reference must be connected at Ref 2 (ext_ref_idx=1).
+        
         """
         # if demod_idx == 4:
         #     ext_ref_idx = 0

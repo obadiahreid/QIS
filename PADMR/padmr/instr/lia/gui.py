@@ -192,4 +192,4 @@ class Ui_Form(object):
         self.label_3.setText(_translate("Form", "Com Port"))
         self.label_10.setText(_translate("Form", "Channel 1"))
         self.pushButton.setText(_translate("Form", "Fast Read"))
-from padmr.supp.CustomWidgets import PlotWidget
+from supp.CustomWidgets import PlotWidget

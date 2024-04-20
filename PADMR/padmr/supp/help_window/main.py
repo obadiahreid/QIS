@@ -3,7 +3,7 @@ import sys
 import PyQt5
 from PyQt5.QtWidgets import QApplication, QWidget
 
-from padmr.supp.help_window.gui import Ui_Form as Help_Ui_Form
+from supp.help_window.gui import Ui_Form as Help_Ui_Form
 
 pyqt = os.path.dirname(PyQt5.__file__)  # This and the following line are essential to make guis run
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))

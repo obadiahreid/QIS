@@ -18,8 +18,8 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QThreadPool, QRunnable
 
-from padmr.instr.mono.controls import MonoDriver
-from padmr.instr.mono.gui import Ui_MainWindow
+from instr.mono.controls import MonoDriver
+from instr.mono.gui import Ui_MainWindow
 
 pyqt = os.path.dirname(PyQt5.__file__)          # This and the following line are essential to make guis run
 QApplication.addLibraryPath(os.path.join(pyqt, "plugins"))

@@ -1,7 +1,7 @@
 import numpy as np
 import pyvisa
 import socket
-from padmr.instr.cryostat import CryostationComm
+from instr.cryostat import CryostationComm
 import sys
 import time
 from pyvisa.constants import VI_WRITE_BUF_DISCARD, VI_READ_BUF_DISCARD

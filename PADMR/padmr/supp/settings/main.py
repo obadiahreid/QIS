@@ -6,16 +6,16 @@ from PyQt5.QtWidgets import QApplication, QWidget, QDoubleSpinBox
 from PyQt5 import QtCore
 
 
-from padmr.supp.settings.gui import Ui_Form as Settings_Ui_Form
-from padmr.supp.label_strings import LabelStrings
-from padmr.supp.icons import led_icons_rc
-from padmr.instr.lia.controls import LockinSettings
-from padmr.instr.zurich_lia.controls import ZiLockinSettings
-from padmr.instr.laser.controls import TopticaSettings, TopticaInstr
-from padmr.instr.mono.controls import MonoSettings
-from padmr.instr.cg635.controls import CG635Settings
-from padmr.instr.cryostat.controls import CryostatSettings
-from padmr.instr.smb100a.controls import SMB100ASettings
+from supp.settings.gui import Ui_Form as Settings_Ui_Form
+from supp.label_strings import LabelStrings
+from supp.icons import led_icons_rc
+from instr.lia.controls import LockinSettings
+from instr.zurich_lia.controls import ZiLockinSettings
+from instr.laser.controls import TopticaSettings, TopticaInstr
+from instr.mono.controls import MonoSettings
+from instr.cg635.controls import CG635Settings
+from instr.cryostat.controls import CryostatSettings
+from instr.smb100a.controls import SMB100ASettings
 
 
 #TODO:
@@ -762,6 +762,60 @@ class SettingsWindowForm(QWidget):
         self.ui.uhfli_sinc_filtering_chkbx.blockSignals(False)
         self.ui.uhfli_ref_mode_cbx.blockSignals(False)
 
+    @QtCore.pyqtSlot(dict)
+    def set_uhfli_settings_states2(self, current_settings_dict):
+
+        # Block signals to prevent infinite recursion
+        self.ui.uhfli_input_cbx_2.blockSignals(True)
+        self.ui.uhfli_input_impedance_cbx_2.blockSignals(True)
+        self.ui.uhfli_range_spbx_2.blockSignals(True)
+        self.ui.uhfli_input_coupling_cbx_2.blockSignals(True)
+        self.ui.uhfli_freq_spbx_2.blockSignals(True)
+        self.ui.uhfli_harm_spbx_2.blockSignals(True)
+        self.ui.uhfli_phase_spbx_2.blockSignals(True)
+        self.ui.uhfli_filter_order_cbx_2.blockSignals(True)
+        self.ui.uhfli_time_constant_spbx_2.blockSignals(True)
+        self.ui.uhfli_sinc_filtering_chkbx_2.blockSignals(True)
+        self.ui.uhfli_ref_mode_cbx_2.blockSignals(True)
+
+        # Set the ui object states to the values in the dict.
+        self.ui.uhfli_input_cbx_2.setCurrentIndex(current_settings_dict["input_idx"])
+        self.ui.uhfli_input_impedance_cbx_2.setCurrentIndex(int(not(current_settings_dict["tf_50ohm"])))
+        self.ui.uhfli_range_spbx_2.setValue(current_settings_dict["range"])
+        self.ui.uhfli_input_coupling_cbx_2.setCurrentIndex(current_settings_dict["coupling"])
+        self.ui.uhfli_freq_spbx_2.setValue(current_settings_dict["ref_freq"])
+        self.ui.uhfli_harm_spbx_2.setValue(current_settings_dict["harmonic"])
+        self.ui.uhfli_phase_spbx_2.setValue(current_settings_dict["phase"])
+        self.ui.uhfli_filter_order_cbx_2.setCurrentIndex(current_settings_dict["filter_order"] - 1)
+        self.ui.uhfli_time_constant_spbx_2.setValue(current_settings_dict["time_constant"])
+        self.ui.uhfli_filter_bandwidth_spbx_2.setValue(current_settings_dict["bw_3db"])
+        self.ui.uhfli_sinc_filtering_chkbx_2.setChecked(current_settings_dict["tf_sinc_filter"])
+
+        if not current_settings_dict["tf_ext_trig"]:
+            trig_idx = 0
+        else:
+            if current_settings_dict["automode_idx"] == 4:
+                trig_idx = 1
+            elif current_settings_dict["automode_idx"] == 2:
+                trig_idx = 2
+            elif current_settings_dict["automode_idx"] == 3:
+                trig_idx = 3
+
+        self.ui.uhfli_ref_mode_cbx_2.setCurrentIndex(trig_idx)
+
+        # Unblock signals so that user actions have an effect again
+        self.ui.uhfli_input_cbx_2.blockSignals(False)
+        self.ui.uhfli_input_impedance_cbx_2.blockSignals(False)
+        self.ui.uhfli_range_spbx_2.blockSignals(False)
+        self.ui.uhfli_input_coupling_cbx_2.blockSignals(False)
+        self.ui.uhfli_freq_spbx_2.blockSignals(False)
+        self.ui.uhfli_harm_spbx_2.blockSignals(False)
+        self.ui.uhfli_phase_spbx_2.blockSignals(False)
+        self.ui.uhfli_filter_order_cbx_2.blockSignals(False)
+        self.ui.uhfli_time_constant_spbx_2.blockSignals(False)
+        self.ui.uhfli_sinc_filtering_chkbx_2.blockSignals(False)
+        self.ui.uhfli_ref_mode_cbx_2.blockSignals(False)
+
     @QtCore.pyqtSlot()
     def toptica_ext_en_btn_clicked(self):
         pass
@@ -799,6 +853,7 @@ class SettingsWindowForm(QWidget):
             if checked is True:
                 self.ui.sr844_checkbox.setChecked(False)
                 self.ui.sr830_checkbox.setChecked(True)
+                self.ui.power_meter_checkbox.setChecked(False)
                 self.lockin_model = 'SR830'
                 self.initialize_settings_window()
             else:
@@ -813,6 +868,7 @@ class SettingsWindowForm(QWidget):
             if checked is True:
                 self.ui.sr830_checkbox.setChecked(False)
                 self.ui.sr844_checkbox.setChecked(True)
+                self.ui.power_meter_checkbox.setChecked(False)
                 self.lockin_model = 'SR844'
                 self.initialize_settings_window()
             else:
@@ -826,7 +882,20 @@ class SettingsWindowForm(QWidget):
         if checked is True:
             self.ui.sr830_checkbox.setChecked(False)
             self.ui.sr844_checkbox.setChecked(False)
+            self.ui.power_meter_checkbox.setChecked(False)
             self.lockin_model = 'UHFLI'
+            self.initialize_settings_window()
+        else:
+            print('Nothing happens in this case')
+
+    @QtCore.pyqtSlot(bool)
+    def power_meter_checkbox_clicked(self, checked):
+        print(checked)
+        if checked is True:
+            self.ui.sr830_checkbox.setChecked(False)
+            self.ui.sr844_checkbox.setChecked(False)
+            self.ui.uhfli_checkbox.setChecked(False)
+            self.lockin_model = 'SMBPowerMeter'
             self.initialize_settings_window()
         else:
             print('Nothing happens in this case')

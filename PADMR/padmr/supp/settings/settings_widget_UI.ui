@@ -21,7 +21,7 @@
    <item row="4" column="0">
     <widget class="QTabWidget" name="tab_widget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="general_tab">
       <attribute name="title">
@@ -43,90 +43,6 @@
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
-           <item row="4" column="4">
-            <widget class="QLabel" name="status_ind_sr844">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QCheckBox" name="cg635_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="5">
-            <widget class="QLabel" name="label_29">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Experiment Setup</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="4">
-            <widget class="QLabel" name="status_ind_cryostat">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QCheckBox" name="sr830_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="label_37">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Use?</string>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="1">
-            <widget class="QCheckBox" name="smb100a_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="15" column="0">
-            <widget class="QLabel" name="label_28">
-             <property name="text">
-              <string>Pump Laser (Toptica iBeam Smart)</string>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_21">
              <property name="maximumSize">
@@ -148,8 +64,11 @@
              </property>
             </widget>
            </item>
-           <item row="13" column="4">
-            <widget class="QLabel" name="status_ind_smb100a">
+           <item row="12" column="2">
+            <widget class="QComboBox" name="prologix_com_port_cmb"/>
+           </item>
+           <item row="4" column="4">
+            <widget class="QLabel" name="status_ind_sr844">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -158,83 +77,13 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="label_57">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Port</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3">
-            <widget class="CustomSpinBox" name="sr844_gpib_address_spbx">
-             <property name="keyboardTracking">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="12" column="1">
-            <widget class="QCheckBox" name="md2000_checkbox">
+           <item row="14" column="1">
+            <widget class="QCheckBox" name="smb100a_checkbox">
              <property name="layoutDirection">
               <enum>Qt::LeftToRight</enum>
              </property>
              <property name="text">
               <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="2">
-            <widget class="QComboBox" name="prologix_com_port_cmb"/>
-           </item>
-           <item row="15" column="2">
-            <widget class="QComboBox" name="toptica_com_port_cmb"/>
-           </item>
-           <item row="6" column="4">
-            <widget class="QLabel" name="status_ind_uhfli">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_23">
-             <property name="text">
-              <string>SR830 - SRS LIA (1 mHz - 102 kHz) </string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="4">
-            <widget class="QLabel" name="status_ind_sr830">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/GREEN_LED_ON.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="4">
-            <widget class="QLabel" name="label_38">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Status</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -266,26 +115,23 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="label_25">
+           <item row="14" column="4">
+            <widget class="QLabel" name="status_ind_smb100a">
              <property name="text">
-              <string>Clock Generator (CG 635)</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
-           <item row="24" column="0" colspan="5">
-            <widget class="QFrame" name="frame_10">
-             <property name="frameShape">
-              <enum>QFrame::HLine</enum>
+           <item row="5" column="4">
+            <widget class="QLabel" name="status_ind_sr830">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/GREEN_LED_ON.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <property name="lineWidth">
-              <number>3</number>
-             </property>
-             <property name="midLineWidth">
-              <number>5</number>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -304,7 +150,41 @@
              </property>
             </widget>
            </item>
-           <item row="20" column="0" colspan="5">
+           <item row="12" column="0">
+            <widget class="QLabel" name="label_84">
+             <property name="text">
+              <string>Prologix Adapter</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="4">
+            <widget class="QLabel" name="status_ind_cryostat">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>UHFLI - Zurich Instruments LIA (DC-600 MHz)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="sr844_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="21" column="0" colspan="5">
             <widget class="QLabel" name="label_50">
              <property name="font">
               <font>
@@ -319,10 +199,179 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="3">
-            <widget class="CustomSpinBox" name="cg635_gpib_spbx">
+           <item row="14" column="2">
+            <widget class="QComboBox" name="smb100a_com_port_cmb"/>
+           </item>
+           <item row="22" column="1">
+            <widget class="QCheckBox" name="scan_auto_sens_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_25">
+             <property name="text">
+              <string>Clock Generator (CG 635)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="5">
+            <widget class="QLabel" name="label_29">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Experiment Setup</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="label_37">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Use?</string>
+             </property>
+            </widget>
+           </item>
+           <item row="14" column="0">
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>RF (Microwave) Source (SMB100A)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>SR830 - SRS LIA (1 mHz - 102 kHz) </string>
+             </property>
+            </widget>
+           </item>
+           <item row="23" column="0" colspan="5">
+            <widget class="QFrame" name="frame_12">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0" colspan="5">
+            <widget class="QFrame" name="frame_4">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="20" column="0" colspan="5">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QPushButton" name="clear_instr_errors_btn">
+               <property name="text">
+                <string>Clear Errors</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="refresh_com_ports_btn">
+               <property name="text">
+                <string>Refresh COM Ports</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_38">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Status</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QCheckBox" name="cg635_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="0">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Monochromator Driver (MD2000)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="CustomSpinBox" name="sr844_gpib_address_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="2">
+            <widget class="QComboBox" name="toptica_com_port_cmb"/>
+           </item>
+           <item row="5" column="3">
+            <widget class="CustomSpinBox" name="sr830_gpib_address_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="17" column="0" colspan="5">
+            <widget class="QFrame" name="frame_5">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
              </property>
             </widget>
            </item>
@@ -342,83 +391,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_22">
-             <property name="text">
-              <string>SR844 - SRS LIA (25-200 MHz)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="3">
-            <widget class="CustomSpinBox" name="sr830_gpib_address_spbx">
-             <property name="keyboardTracking">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="13" column="2">
-            <widget class="QComboBox" name="smb100a_com_port_cmb"/>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_84">
-             <property name="text">
-              <string>Prologix Adapter</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QCheckBox" name="cryostat_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QCheckBox" name="sr844_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_13">
-             <property name="text">
-              <string>UHFLI - Zurich Instruments LIA (DC-600 MHz)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="19" column="0" colspan="5">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QPushButton" name="clear_instr_errors_btn">
-               <property name="text">
-                <string>Clear Errors</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="refresh_com_ports_btn">
-               <property name="text">
-                <string>Refresh COM Ports</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="21" column="0">
-            <widget class="QLabel" name="label_74">
-             <property name="text">
-              <string>Optimize Lock-in Sensitivity at Each Point</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="4">
+           <item row="10" column="4">
             <widget class="QLabel" name="status_ind_cg635">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -428,14 +401,40 @@
              </property>
             </widget>
            </item>
-           <item row="23" column="0">
+           <item row="24" column="0">
             <widget class="QCheckBox" name="debug_mode_checkbox">
              <property name="text">
               <string>Debug Mode</string>
              </property>
             </widget>
            </item>
-           <item row="15" column="1">
+           <item row="6" column="4">
+            <widget class="QLabel" name="status_ind_uhfli">
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="25" column="0" colspan="5">
+            <widget class="QFrame" name="frame_10">
+             <property name="frameShape">
+              <enum>QFrame::HLine</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <property name="lineWidth">
+              <number>3</number>
+             </property>
+             <property name="midLineWidth">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="1">
             <widget class="QCheckBox" name="toptica_checkbox">
              <property name="layoutDirection">
               <enum>Qt::LeftToRight</enum>
@@ -445,10 +444,52 @@
              </property>
             </widget>
            </item>
-           <item row="12" column="4">
+           <item row="11" column="1">
+            <widget class="QCheckBox" name="cryostat_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QCheckBox" name="sr830_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="13" column="4">
             <widget class="QLabel" name="status_ind_md2000">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_ON.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_22">
+             <property name="text">
+              <string>SR844 - SRS LIA (25-200 MHz)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_57">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Port</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -462,14 +503,34 @@
              </property>
             </widget>
            </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="label_27">
+           <item row="13" column="1">
+            <widget class="QCheckBox" name="md2000_checkbox">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
              <property name="text">
-              <string>Cryostat/Magnet (Montana Instruments)</string>
+              <string/>
              </property>
             </widget>
            </item>
-           <item row="15" column="4">
+           <item row="13" column="2">
+            <widget class="QComboBox" name="md2000_com_port_cmb"/>
+           </item>
+           <item row="22" column="0">
+            <widget class="QLabel" name="label_74">
+             <property name="text">
+              <string>Optimize Lock-in Sensitivity at Each Point</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="0">
+            <widget class="QLabel" name="label_28">
+             <property name="text">
+              <string>Pump Laser (Toptica iBeam Smart)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="16" column="4">
             <widget class="QLabel" name="status_ind_toptica">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/led_icons/RED_LED_OFF.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -479,78 +540,31 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="0" colspan="5">
-            <widget class="QFrame" name="frame_4">
-             <property name="frameShape">
-              <enum>QFrame::HLine</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <property name="lineWidth">
-              <number>3</number>
-             </property>
-             <property name="midLineWidth">
-              <number>5</number>
+           <item row="10" column="3">
+            <widget class="CustomSpinBox" name="cg635_gpib_spbx">
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
-           <item row="13" column="0">
-            <widget class="QLabel" name="label_26">
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_27">
              <property name="text">
-              <string>RF (Microwave) Source (SMB100A)</string>
+              <string>Cryostat/Magnet (Montana Instruments)</string>
              </property>
             </widget>
            </item>
-           <item row="12" column="2">
-            <widget class="QComboBox" name="md2000_com_port_cmb"/>
-           </item>
-           <item row="12" column="0">
-            <widget class="QLabel" name="label_24">
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_82">
              <property name="text">
-              <string>Monochromator Driver (MD2000)</string>
+              <string>SMB100A External Power Meter</string>
              </property>
             </widget>
            </item>
-           <item row="16" column="0" colspan="5">
-            <widget class="QFrame" name="frame_5">
-             <property name="frameShape">
-              <enum>QFrame::HLine</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <property name="lineWidth">
-              <number>3</number>
-             </property>
-             <property name="midLineWidth">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item row="21" column="1">
-            <widget class="QCheckBox" name="scan_auto_sens_checkbox">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
+           <item row="7" column="1">
+            <widget class="QCheckBox" name="power_meter_checkbox">
              <property name="text">
               <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="22" column="0" colspan="5">
-            <widget class="QFrame" name="frame_12">
-             <property name="frameShape">
-              <enum>QFrame::HLine</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <property name="lineWidth">
-              <number>3</number>
-             </property>
-             <property name="midLineWidth">
-              <number>5</number>
              </property>
             </widget>
            </item>
@@ -2167,8 +2181,206 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
        <string>R&amp;&amp;S</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_13">
-       <item row="1" column="0">
-        <spacer name="horizontalSpacer_3">
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_66">
+         <property name="text">
+          <string>Frequency</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="4" colspan="2">
+        <widget class="QTextEdit" name="smb100a_response_textedit"/>
+       </item>
+       <item row="5" column="4">
+        <widget class="QCheckBox" name="smb100a_modulate_checkbox">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string>Pulse Modulation</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="1" colspan="6">
+        <widget class="QLabel" name="label_67">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <underline>true</underline>
+          </font>
+         </property>
+         <property name="text">
+          <string>Manual Communication</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="4">
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="4">
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="10" column="1">
+        <widget class="QCheckBox" name="cooling_delay_chkbx">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string>Pause Output
+After Each Point</string>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="1" colspan="2">
+        <widget class="QLabel" name="label_68">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Write String</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="6">
+        <widget class="CustomComboBox" name="smb100a_power_units_cbx">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="editable">
+          <bool>false</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>dBm</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="5" column="6">
+        <widget class="QComboBox" name="smb100a_mod_source_cmb">
+         <item>
+          <property name="text">
+           <string>INT</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>EXT</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="14" column="4" colspan="2">
+        <widget class="QLineEdit" name="smb100a_write_cmd_lnedt"/>
+       </item>
+       <item row="10" column="4">
+        <widget class="ScienDSpinBox" name="cooling_delay_spbx">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="decimals">
+          <number>16</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>2050000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="1" colspan="2">
+        <widget class="QLabel" name="label_138">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Response</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="1" colspan="6">
+        <widget class="QFrame" name="frame_7">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="lineWidth">
+          <number>3</number>
+         </property>
+         <property name="midLineWidth">
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="4" colspan="2">
+        <widget class="ScienDSpinBox" name="smb100a_set_mod_freq_spbx">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="keyboardTracking">
+          <bool>false</bool>
+         </property>
+         <property name="decimals">
+          <number>16</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>2050000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="label_69">
+         <property name="text">
+          <string>Modulation Frequency</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="7">
+        <spacer name="horizontalSpacer_4">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -2180,15 +2392,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
          </property>
         </spacer>
        </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_66">
-         <property name="text">
-          <string>Frequency</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="4" colspan="2">
-        <widget class="CustomDoubleSpinBox" name="smb100a_set_freq_spbx">
+        <widget class="ScienDSpinBox" name="smb100a_set_freq_spbx">
          <property name="maximumSize">
           <size>
            <width>16777215</width>
@@ -2209,21 +2414,113 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
          </property>
         </widget>
        </item>
-       <item row="11" column="1" colspan="2">
-        <widget class="QLabel" name="label_138">
-         <property name="maximumSize">
+       <item row="6" column="6">
+        <widget class="CustomComboBox" name="smb100a_mod_freq_units">
+         <property name="currentText">
+          <string>Hz</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Hz</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>kHz</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>MHz</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>GHz</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QPushButton" name="smb100a_stop_btn">
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>16777215</width>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_70">
+         <property name="text">
+          <string>RF Power</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1" colspan="6">
+        <widget class="QLabel" name="label_72">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+           <underline>true</underline>
+          </font>
+         </property>
+         <property name="text">
+          <string>Modulation</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="5">
+        <widget class="QLabel" name="label_39">
+         <property name="text">
+          <string>Seconds</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
            <height>20</height>
           </size>
          </property>
+        </spacer>
+       </item>
+       <item row="5" column="5">
+        <widget class="QLabel" name="label_71">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
          <property name="text">
-          <string>Response</string>
+          <string>Trigger Source:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
        <item row="2" column="4" colspan="2">
-        <widget class="CustomDoubleSpinBox" name="smb100a_set_power_spbx">
+        <widget class="ScienDSpinBox" name="smb100a_set_power_spbx">
          <property name="maximumSize">
           <size>
            <width>16777215</width>
@@ -2244,38 +2541,14 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
          </property>
         </widget>
        </item>
-       <item row="10" column="4" colspan="2">
-        <widget class="QLineEdit" name="smb100a_write_cmd_lnedt"/>
-       </item>
-       <item row="7" column="4">
-        <spacer name="verticalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="0" column="4">
+        <widget class="QPushButton" name="smb100a_run_btn">
+         <property name="text">
+          <string>Run</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="6">
-        <widget class="CustomComboBox" name="smb100a_power_units_cbx">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="editable">
-          <bool>false</bool>
-         </property>
-         <item>
-          <property name="text">
-           <string>dBm</string>
-          </property>
-         </item>
         </widget>
        </item>
-       <item row="10" column="6">
+       <item row="14" column="6">
         <widget class="QPushButton" name="smb100a_send_cmd_btn">
          <property name="maximumSize">
           <size>
@@ -2319,209 +2592,16 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
          </item>
         </widget>
        </item>
-       <item row="8" column="1" colspan="6">
-        <widget class="QFrame" name="frame_7">
-         <property name="frameShape">
-          <enum>QFrame::HLine</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <property name="lineWidth">
-          <number>3</number>
-         </property>
-         <property name="midLineWidth">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="4" colspan="2">
-        <widget class="CustomDoubleSpinBox" name="smb100a_set_mod_freq_spbx">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="keyboardTracking">
-          <bool>false</bool>
-         </property>
-         <property name="decimals">
-          <number>16</number>
-         </property>
-         <property name="minimum">
-          <double>0.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>2050000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="4">
-        <widget class="QCheckBox" name="smb100a_modulate_checkbox">
+       <item row="11" column="1">
+        <widget class="QCheckBox" name="smb100a_stop_after_expt_chkbx">
          <property name="layoutDirection">
           <enum>Qt::RightToLeft</enum>
          </property>
          <property name="text">
-          <string>Modulate?</string>
+          <string>Stop Output After Experiment</string>
          </property>
-        </widget>
-       </item>
-       <item row="5" column="6">
-        <widget class="QComboBox" name="smb100a_mod_source_cmb">
-         <item>
-          <property name="text">
-           <string>INT</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>EXT</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="7">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="5" column="5">
-        <widget class="QLabel" name="label_71">
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Trigger Source:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="4" colspan="2">
-        <widget class="QTextEdit" name="smb100a_response_textedit"/>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLabel" name="label_69">
-         <property name="text">
-          <string>Modulation Frequency</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="1" colspan="2">
-        <widget class="QLabel" name="label_68">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Write String</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="4">
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_70">
-         <property name="text">
-          <string>RF Power</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="6">
-        <widget class="CustomComboBox" name="smb100a_mod_freq_units">
-         <property name="currentText">
-          <string>Hz</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>Hz</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>kHz</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MHz</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>GHz</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="4" column="1" colspan="6">
-        <widget class="QLabel" name="label_72">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-           <underline>true</underline>
-          </font>
-         </property>
-         <property name="text">
-          <string>Modulation</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1" colspan="6">
-        <widget class="QLabel" name="label_67">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <underline>true</underline>
-          </font>
-         </property>
-         <property name="text">
-          <string>Manual Communication</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="5">
-        <widget class="QPushButton" name="smb100a_stop_btn">
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QPushButton" name="smb100a_run_btn">
-         <property name="text">
-          <string>Run</string>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -2707,7 +2787,7 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
             <widget class="QTextEdit" name="cg635_response_textedit"/>
            </item>
            <item row="3" column="2">
-            <widget class="CustomDoubleSpinBox" name="cg635_set_freq_spbx">
+            <widget class="ScienDSpinBox" name="cg635_set_freq_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -2803,7 +2883,7 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="CustomDoubleSpinBox" name="cg635_set_phase_spbx">
+            <widget class="ScienDSpinBox" name="cg635_set_phase_spbx">
              <property name="keyboardTracking">
               <bool>false</bool>
              </property>
@@ -2831,14 +2911,7 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
       <layout class="QGridLayout" name="gridLayout_12">
        <item row="0" column="0" colspan="4">
         <layout class="QGridLayout" name="gridLayout_14">
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_78">
-           <property name="text">
-            <string>Re-Zero Magnet Before Each Scan</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="label_137">
            <property name="maximumSize">
             <size>
@@ -2851,44 +2924,7 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
            </property>
           </widget>
          </item>
-         <item row="8" column="0" colspan="3">
-          <widget class="QLabel" name="label_75">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Debug / Testing</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_73">
-           <property name="text">
-            <string>Wait Time (Magnet Settling, s)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QCheckBox" name="cryostat_zero_between_scans_chkbx">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0" colspan="3">
+         <item row="7" column="0" colspan="3">
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -2901,88 +2937,10 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
            </property>
           </spacer>
          </item>
-         <item row="9" column="2">
-          <widget class="QPushButton" name="cryostat_send_cmd_btn">
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../icons/arrow.png</normaloff>../icons/arrow.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
-          <widget class="QLineEdit" name="cryostat_write_cmd_lnedt"/>
-         </item>
-         <item row="2" column="1" alignment="Qt::AlignRight">
-          <widget class="QDoubleSpinBox" name="cryostat_delay_between_scans_spbx">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field settling is slower when going to B=0, especially for the last 10 mT. Hence the extra delay between scans. It takes ~5 full seconds.&lt;/p&gt;&lt;p&gt;It is likely that the settling is slow whenever the next setpoint is below the current one&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <widget class="QLineEdit" name="cryostat_response_lnedt">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" alignment="Qt::AlignRight">
-          <widget class="QDoubleSpinBox" name="cryostat_magnet_settling_time_sbpx">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Magnet takes time to reach the setpoint.&lt;/p&gt;&lt;p&gt; The exact amount of time depends on the specifics of the step. ~90-95% of the change occurs within ~0.5 seconds, but the field isn't really &amp;quot;stable&amp;quot; until ~0.8-1 second after it begins. &lt;/p&gt;&lt;p&gt;The field settling is even slower when going to B=0, especially for the last 10 mT. Hence the extra delay between scans. It takes ~5 full seconds.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;It is likely that the settling is slow whenever the next setpoint is below the current one&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
           <widget class="QLabel" name="label_77">
            <property name="text">
             <string>Delay Between Scans (Magnet Settling, s)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0" colspan="3">
-          <widget class="QFrame" name="frame_8">
-           <property name="frameShape">
-            <enum>QFrame::HLine</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <property name="lineWidth">
-            <number>3</number>
-           </property>
-           <property name="midLineWidth">
-            <number>5</number>
            </property>
           </widget>
          </item>
@@ -3003,7 +2961,143 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
            </property>
           </widget>
          </item>
-         <item row="9" column="0">
+         <item row="1" column="1" alignment="Qt::AlignRight">
+          <widget class="QDoubleSpinBox" name="cryostat_magnet_settling_time_sbpx">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Magnet takes time to reach the setpoint.&lt;/p&gt;&lt;p&gt; The exact amount of time depends on the specifics of the step. ~90-95% of the change occurs within ~0.5 seconds, but the field isn't really &amp;quot;stable&amp;quot; until ~0.8-1 second after it begins. &lt;/p&gt;&lt;p&gt;The field settling is even slower when going to B=0, especially for the last 10 mT. Hence the extra delay between scans. It takes ~5 full seconds.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;It is likely that the settling is slow whenever the next setpoint is below the current one&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QLineEdit" name="cryostat_response_lnedt">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="clearButtonEnabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="2">
+          <widget class="QPushButton" name="cryostat_send_cmd_btn">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../icons/arrow.png</normaloff>../icons/arrow.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QLineEdit" name="cryostat_write_cmd_lnedt"/>
+         </item>
+         <item row="3" column="1">
+          <widget class="QCheckBox" name="cryostat_zero_between_scans_chkbx">
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="3">
+          <widget class="QLabel" name="label_75">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Debug / Testing</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_79">
+           <property name="text">
+            <string>Zero Magnet Once, Now (takes a few minutes)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0" colspan="3">
+          <widget class="QFrame" name="frame_8">
+           <property name="frameShape">
+            <enum>QFrame::HLine</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <property name="lineWidth">
+            <number>3</number>
+           </property>
+           <property name="midLineWidth">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QPushButton" name="cryostat_zero_magnet_now_btn">
+           <property name="text">
+            <string>Start</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_73">
+           <property name="text">
+            <string>Wait Time (Magnet Settling, s)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_78">
+           <property name="text">
+            <string>Re-Zero Magnet Before Each Scan</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1" alignment="Qt::AlignRight">
+          <widget class="QDoubleSpinBox" name="cryostat_delay_between_scans_spbx">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field settling is slower when going to B=0, especially for the last 10 mT. Hence the extra delay between scans. It takes ~5 full seconds.&lt;/p&gt;&lt;p&gt;It is likely that the settling is slow whenever the next setpoint is below the current one&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
           <widget class="QLabel" name="label_65">
            <property name="maximumSize">
             <size>
@@ -3016,17 +3110,23 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QPushButton" name="cryostat_zero_magnet_now_btn">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_80">
            <property name="text">
-            <string>Start</string>
+            <string>Re-Zero Magnet After Completion</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_79">
+         <item row="4" column="1">
+          <widget class="QCheckBox" name="cryostat_zero_after_expt_chkbx">
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
            <property name="text">
-            <string>Zero Magnet Once, Now (takes a few minutes)</string>
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -3279,8 +3379,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>save_as_dflt_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>364</x>
-     <y>638</y>
+     <x>379</x>
+     <y>657</y>
     </hint>
     <hint type="destinationlabel">
      <x>384</x>
@@ -3327,8 +3427,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_start_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>173</x>
-     <y>80</y>
+     <x>175</x>
+     <y>619</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3343,8 +3443,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_stop_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>173</x>
-     <y>80</y>
+     <x>471</x>
+     <y>377</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3359,8 +3459,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_ext_en_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>123</x>
-     <y>80</y>
+     <x>125</x>
+     <y>667</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3375,8 +3475,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_set_main_power_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>101</x>
-     <y>53</y>
+     <x>584</x>
+     <y>677</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3391,8 +3491,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_set_bias_power_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>101</x>
-     <y>58</y>
+     <x>584</x>
+     <y>713</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3407,8 +3507,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>toptica_bias_enable_btn_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>123</x>
-     <y>80</y>
+     <x>125</x>
+     <y>579</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
@@ -3423,8 +3523,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>sr844_gpib_address_changed(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>511</x>
-     <y>234</y>
+     <x>523</x>
+     <y>233</y>
     </hint>
     <hint type="destinationlabel">
      <x>480</x>
@@ -3439,8 +3539,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>sr830_gpib_address_changed(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>511</x>
-     <y>266</y>
+     <x>523</x>
+     <y>265</y>
     </hint>
     <hint type="destinationlabel">
      <x>483</x>
@@ -3471,8 +3571,8 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>uhfli_checkbox_clicked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>302</x>
-     <y>294</y>
+     <x>315</x>
+     <y>293</y>
     </hint>
     <hint type="destinationlabel">
      <x>596</x>
@@ -3487,12 +3587,28 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
    <slot>enable_secondary_demodulator(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>112</x>
-     <y>65</y>
+     <x>433</x>
+     <y>204</y>
     </hint>
     <hint type="destinationlabel">
      <x>615</x>
      <y>10</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>power_meter_checkbox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>Form</receiver>
+   <slot>power_meter_checkbox_clicked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>308</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>634</x>
+     <y>34</y>
     </hint>
    </hints>
   </connection>
@@ -3552,5 +3668,6 @@ Use when filter bandwidth is larger than or comparable to reference frequency.</
   <slot>clear_instr_errors_btn_clicked()</slot>
   <slot>uhfli_checkbox_clicked(bool)</slot>
   <slot>enable_secondary_demodulator(bool)</slot>
+  <slot>power_meter_checkbox_clicked(bool)</slot>
  </slots>
 </ui>

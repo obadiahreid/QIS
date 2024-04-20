@@ -118,6 +118,27 @@ class SMB100AInstrument(QtCore.QObject):
             self.property_updated_signal.emit('output_enabled_status', int(response))
             print('Response: ' + str(response))
 
+    def read_power_meter(self):
+        if self.error.status:
+            self.send_error_signal.emit(self.error)
+            return None
+        else:
+            self.write_string('SENS:UNIT DBM', read=False)
+            response = self.write_string('READ1?', read=True)
+            print('Response, Power: ' + str(response) + ' DBM')
+            sample = dict()
+            try:
+                resp = float(response)
+                sample["Power (dBm)"] = resp
+                sample["Power (W)"] = (0.001) * (10 ** resp/10)
+            except ValueError:
+                sample["Power (dBm)"] = 0
+                sample["Power (W)"] = 0
+                print('Power Reading was non-numeric')
+
+            return sample
+
+
     def calc_pulse_mod_params(self, target_freq=None, freq_units='Hz'):
         if target_freq is not None:
             if freq_units == 'Hz':
@@ -206,6 +227,7 @@ class SMB100AInstrument(QtCore.QObject):
                     self.comms.write(string_to_write)
 
             except pyvisa.VisaIOError as err:
+                print(str(err))
                 self.error = ErrorCluster(status=True, code=8003,
                                           details='Error writing command to SMB100A.' + str(err))
                 self.send_error_signal.emit(self.error)
@@ -346,7 +368,7 @@ class SMB100AInstrument(QtCore.QObject):
         rm.list_resources()
 
         try:
-            self.comms = rm.open_resource(self.settings.com_port)
+            self.comms = rm.open_resource(self.settings.com_port, timeout=5000)
             time.sleep(0.05)
 
             self.comms.write_termination = None

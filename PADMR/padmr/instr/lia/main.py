@@ -15,13 +15,13 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget
 from PyQt5.QtCore import QThreadPool, QRunnable
 
-from padmr.supp.CustomWidgets import PlotWidget
+from supp.CustomWidgets import PlotWidget
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT, FigureCanvasQTAgg
 
-from padmr.instr.lia.gui import Ui_Form as LockinUiForm
-from padmr.instr.lia.SR_Lockin_using_Prologix_Module import PrologixAdaptedSRLockin
+from instr.lia.gui import Ui_Form as LockinUiForm
+from instr.lia.SR_Lockin_using_Prologix_Module import PrologixAdaptedSRLockin
 
 #TODO:
 # 1. Figure out why the hell the query button doesn't allow me to query, when it worked immediately before during setup
